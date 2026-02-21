@@ -1,0 +1,3386 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KMS – Hệ thống Quản lý Kiến thức</title>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --brand: #5B9BD5;
+    --brand-light: #A8CCEE;
+    --brand-deep: #2E6DA4;
+    --brand-pastel: #EBF4FB;
+    --brand-glow: rgba(91,155,213,0.18);
+    --accent: #3ABFBF;
+    --accent2: #FF8C69;
+    --bg: #F5F9FD;
+    --surface: #FFFFFF;
+    --surface2: #EBF4FB;
+    --border: #D0E6F5;
+    --text: #1A2B3C;
+    --text2: #4A6278;
+    --text3: #8BA5BA;
+    --sidebar-w: 260px;
+    --radius: 12px;
+    --shadow: 0 2px 16px rgba(44,100,160,0.10);
+    --shadow-hover: 0 6px 28px rgba(44,100,160,0.18);
+    --transition: 0.22s cubic-bezier(0.4,0,0.2,1);
+  }
+  [data-theme="dark"] {
+    --bg: #0E1C2A;
+    --surface: #162333;
+    --surface2: #1C2E40;
+    --border: #243A52;
+    --text: #E4EEF7;
+    --text2: #8BAEC8;
+    --text3: #4A6278;
+    --brand-pastel: #1C2E40;
+    --shadow: 0 2px 16px rgba(0,0,0,0.35);
+    --shadow-hover: 0 6px 28px rgba(0,0,0,0.5);
+    --brand-glow: rgba(91,155,213,0.12);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Be Vietnam Pro', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    transition: background var(--transition), color var(--transition);
+  }
+
+  /* ─── SIDEBAR ─── */
+  .sidebar {
+    width: var(--sidebar-w);
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    z-index: 100;
+    transition: transform var(--transition), background var(--transition);
+  }
+  .sidebar-logo {
+    padding: 24px 20px 18px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 12px;
+  }
+  .logo-icon {
+    width: 38px; height: 38px; border-radius: 10px;
+    background: linear-gradient(135deg, var(--brand), var(--brand-deep));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; flex-shrink: 0;
+    box-shadow: 0 3px 10px rgba(91,155,213,0.35);
+  }
+  .logo-text { font-size: 15px; font-weight: 800; color: var(--brand-deep); line-height: 1.2; }
+  .logo-sub { font-size: 10.5px; color: var(--text3); font-weight: 400; }
+
+  .sidebar-nav { flex: 1; padding: 14px 10px; overflow-y: auto; }
+  .nav-section { margin-bottom: 22px; }
+  .nav-label {
+    font-size: 10px; font-weight: 700; color: var(--text3); text-transform: uppercase;
+    letter-spacing: 0.1em; padding: 0 10px; margin-bottom: 6px;
+  }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 12px; border-radius: 9px; cursor: pointer;
+    font-size: 13.5px; font-weight: 500; color: var(--text2);
+    transition: all var(--transition); user-select: none;
+  }
+  .nav-item:hover { background: var(--brand-pastel); color: var(--brand-deep); }
+  .nav-item.active { background: linear-gradient(90deg, var(--brand-pastel), var(--brand-glow)); color: var(--brand); font-weight: 700; }
+  .nav-item.active .nav-dot { display: block; }
+  .nav-dot { display: none; width: 5px; height: 5px; border-radius: 50%; background: var(--brand); margin-left: auto; flex-shrink: 0; }
+  .nav-icon { font-size: 16px; flex-shrink: 0; width: 20px; text-align: center; }
+  .nav-badge {
+    margin-left: auto; background: var(--brand); color: #fff;
+    font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 20px;
+  }
+
+  .sidebar-bottom {
+    padding: 14px 10px; border-top: 1px solid var(--border);
+  }
+  .user-card {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px; border-radius: 9px;
+    background: var(--brand-pastel); cursor: pointer;
+  }
+  .user-avatar {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--brand), var(--accent));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700; color: #fff; flex-shrink: 0;
+  }
+  .user-name { font-size: 13px; font-weight: 600; color: var(--text); }
+  .user-role { font-size: 11px; color: var(--text3); }
+
+  /* ─── MAIN ─── */
+  .main { margin-left: var(--sidebar-w); flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+
+  /* ─── TOPBAR ─── */
+  .topbar {
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    padding: 0 28px; height: 64px;
+    display: flex; align-items: center; gap: 14px;
+    position: sticky; top: 0; z-index: 50;
+    transition: background var(--transition);
+  }
+  .search-wrap {
+    flex: 1; max-width: 540px; position: relative;
+  }
+  .search-input {
+    width: 100%; height: 40px; border-radius: 10px;
+    border: 1.5px solid var(--border); background: var(--bg);
+    padding: 0 44px 0 40px; font-size: 13.5px; color: var(--text);
+    font-family: inherit; outline: none;
+    transition: all var(--transition);
+  }
+  .search-input:focus { border-color: var(--brand); background: var(--surface); box-shadow: 0 0 0 3px var(--brand-glow); }
+  .search-icon { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: var(--text3); font-size: 15px; }
+  .search-shortcut {
+    position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+    background: var(--border); border-radius: 5px; padding: 2px 7px;
+    font-size: 10px; color: var(--text3); font-family: 'JetBrains Mono', monospace;
+  }
+  .autocomplete-box {
+    position: absolute; top: 46px; left: 0; right: 0;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    box-shadow: var(--shadow-hover); z-index: 200; display: none; overflow: hidden;
+  }
+  .autocomplete-box.show { display: block; }
+  .auto-item {
+    padding: 11px 16px; cursor: pointer; font-size: 13px; color: var(--text2);
+    display: flex; align-items: center; gap: 10px; transition: background var(--transition);
+  }
+  .auto-item:hover { background: var(--brand-pastel); color: var(--brand); }
+  .auto-cat { font-size: 10.5px; color: var(--text3); margin-left: auto; }
+
+  .topbar-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+  .btn-icon {
+    width: 36px; height: 36px; border-radius: 9px; border: 1px solid var(--border);
+    background: var(--bg); cursor: pointer; display: flex; align-items: center; justify-content: center;
+    font-size: 16px; color: var(--text2); transition: all var(--transition);
+  }
+  .btn-icon:hover { background: var(--brand-pastel); border-color: var(--brand-light); color: var(--brand); }
+  .btn-primary {
+    height: 36px; padding: 0 16px; border-radius: 9px; border: none;
+    background: linear-gradient(135deg, var(--brand), var(--brand-deep));
+    color: #fff; font-family: inherit; font-size: 13px; font-weight: 600;
+    cursor: pointer; display: flex; align-items: center; gap: 7px;
+    transition: all var(--transition); box-shadow: 0 2px 10px rgba(91,155,213,0.3);
+  }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 5px 18px rgba(91,155,213,0.45); }
+
+  /* ─── CONTENT ─── */
+  .content { flex: 1; padding: 28px; }
+
+  /* ─── HOME ─── */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  .hero-banner {
+    background: linear-gradient(135deg, var(--brand-deep) 0%, var(--brand) 60%, var(--accent) 100%);
+    border-radius: 20px; padding: 38px 40px; margin-bottom: 28px; position: relative; overflow: hidden;
+    box-shadow: 0 8px 32px rgba(91,155,213,0.35);
+  }
+  .hero-banner::before {
+    content: ''; position: absolute; top: -40px; right: -40px;
+    width: 220px; height: 220px; border-radius: 50%;
+    background: rgba(255,255,255,0.07);
+  }
+  .hero-banner::after {
+    content: ''; position: absolute; bottom: -60px; right: 100px;
+    width: 160px; height: 160px; border-radius: 50%;
+    background: rgba(255,255,255,0.05);
+  }
+  .hero-title { font-size: 26px; font-weight: 800; color: #fff; margin-bottom: 8px; }
+  .hero-sub { font-size: 14px; color: rgba(255,255,255,0.75); max-width: 480px; line-height: 1.6; }
+  .hero-stats { display: flex; gap: 28px; margin-top: 24px; }
+  .hero-stat { color: rgba(255,255,255,0.9); }
+  .hero-stat-num { font-size: 24px; font-weight: 800; }
+  .hero-stat-label { font-size: 11px; opacity: 0.7; }
+
+  .section-title {
+    font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 16px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .section-title span { color: var(--brand); }
+
+  .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; margin-bottom: 28px; }
+
+  .cat-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 20px; cursor: pointer; transition: all var(--transition);
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .cat-card:hover { border-color: var(--brand-light); box-shadow: var(--shadow-hover); transform: translateY(-2px); }
+  .cat-icon { font-size: 28px; }
+  .cat-name { font-size: 14px; font-weight: 700; color: var(--text); }
+  .cat-count { font-size: 12px; color: var(--text3); }
+  .cat-bar { height: 3px; border-radius: 2px; background: var(--border); margin-top: 4px; }
+  .cat-bar-fill { height: 100%; border-radius: 2px; background: linear-gradient(90deg, var(--brand), var(--accent)); }
+
+  .articles-list { display: flex; flex-direction: column; gap: 12px; }
+
+  .article-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 18px 20px; cursor: pointer; transition: all var(--transition);
+    display: flex; gap: 16px; align-items: flex-start;
+  }
+  .article-card:hover { border-color: var(--brand-light); box-shadow: var(--shadow-hover); }
+  .article-thumb {
+    width: 44px; height: 44px; border-radius: 10px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; font-size: 20px;
+  }
+  .article-info { flex: 1; min-width: 0; }
+  .article-title { font-size: 14.5px; font-weight: 700; color: var(--text); margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .article-meta { font-size: 12px; color: var(--text3); display: flex; gap: 14px; flex-wrap: wrap; }
+  .article-tags { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+  .tag {
+    background: var(--brand-pastel); color: var(--brand-deep); border: 1px solid var(--brand-light);
+    border-radius: 20px; padding: 2px 10px; font-size: 11px; font-weight: 500;
+  }
+  .article-right { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; flex-shrink: 0; }
+  .article-views { font-size: 11px; color: var(--text3); display: flex; align-items: center; gap: 4px; }
+  .status-badge {
+    border-radius: 20px; padding: 2px 10px; font-size: 11px; font-weight: 600;
+  }
+  .status-published { background: #D4EDDA; color: #155724; }
+  .status-draft { background: #FFF3CD; color: #856404; }
+  .status-pending { background: #D1ECF1; color: #0C5460; }
+  [data-theme="dark"] .status-published { background: #1B3A2A; color: #56C77A; }
+  [data-theme="dark"] .status-draft { background: #3A2E0A; color: #F0C040; }
+  [data-theme="dark"] .status-pending { background: #0A2A35; color: #40B8D8; }
+
+  /* ─── ARTICLE DETAIL ─── */
+  .article-detail-wrap {
+    max-width: 860px;
+  }
+  .back-btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    color: var(--brand); font-size: 13px; font-weight: 600; cursor: pointer;
+    margin-bottom: 20px; transition: gap var(--transition);
+  }
+  .back-btn:hover { gap: 10px; }
+  .article-detail-header { margin-bottom: 24px; }
+  .article-detail-title { font-size: 26px; font-weight: 800; color: var(--text); line-height: 1.35; margin-bottom: 12px; }
+  .article-detail-meta { display: flex; gap: 18px; font-size: 13px; color: var(--text3); flex-wrap: wrap; margin-bottom: 14px; }
+  .article-detail-body {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+    padding: 32px; line-height: 1.8; font-size: 14.5px; color: var(--text2);
+    margin-bottom: 24px;
+  }
+  .article-detail-body h3 { font-size: 17px; font-weight: 700; color: var(--text); margin: 24px 0 10px; }
+  .article-detail-body p { margin-bottom: 14px; }
+  .article-detail-body ul { margin: 10px 0 14px 20px; }
+  .article-detail-body li { margin-bottom: 6px; }
+  .article-detail-body code {
+    font-family: 'JetBrains Mono', monospace; background: var(--surface2);
+    border: 1px solid var(--border); border-radius: 5px; padding: 2px 7px; font-size: 13px;
+  }
+  .video-embed {
+    background: var(--surface2); border: 1px solid var(--border); border-radius: 12px;
+    padding: 20px; text-align: center; margin: 20px 0; color: var(--text3);
+    font-size: 13px;
+  }
+  .feedback-box {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+    padding: 24px; text-align: center;
+  }
+  .feedback-title { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 14px; }
+  .feedback-btns { display: flex; gap: 12px; justify-content: center; }
+  .feedback-btn {
+    padding: 9px 22px; border-radius: 9px; border: 1.5px solid var(--border);
+    background: var(--bg); font-family: inherit; font-size: 13px; font-weight: 600;
+    cursor: pointer; color: var(--text2); transition: all var(--transition); display: flex; align-items: center; gap: 7px;
+  }
+  .feedback-btn.yes:hover, .feedback-btn.yes.active { background: #D4EDDA; border-color: #56C77A; color: #155724; }
+  .feedback-btn.no:hover, .feedback-btn.no.active { background: #FDECEA; border-color: #E57373; color: #B71C1C; }
+  [data-theme="dark"] .feedback-btn.yes.active { background: #1B3A2A; border-color: #56C77A; color: #56C77A; }
+  [data-theme="dark"] .feedback-btn.no.active { background: #3A1A1A; border-color: #E57373; color: #E57373; }
+
+  /* ─── EDITOR ─── */
+  .editor-wrap { max-width: 880px; }
+  .editor-wrap-box { border: 1.5px solid var(--border); border-radius: 12px; overflow: hidden; transition: border-color var(--transition); }
+  .editor-wrap-box:focus-within { border-color: var(--brand); box-shadow: 0 0 0 3px var(--brand-glow); }
+  .editor-toolbar {
+    background: var(--surface2); border-bottom: 1px solid var(--border);
+    padding: 8px 12px; display: flex; gap: 2px; flex-wrap: wrap; align-items: center;
+  }
+  .toolbar-group { display: flex; align-items: center; gap: 2px; }
+  .toolbar-btn {
+    min-width: 30px; height: 28px; padding: 0 6px; border: none; background: transparent; border-radius: 6px;
+    cursor: pointer; font-size: 13px; color: var(--text2); font-family: 'JetBrains Mono', monospace;
+    transition: all var(--transition); display: flex; align-items: center; justify-content: center;
+    white-space: nowrap; gap: 4px;
+  }
+  .toolbar-btn:hover { background: var(--brand-pastel); color: var(--brand); }
+  .toolbar-btn.active { background: var(--brand-pastel); color: var(--brand); font-weight: 700; }
+  .toolbar-btn svg { width: 14px; height: 14px; fill: currentColor; flex-shrink: 0; }
+  .toolbar-sep { width: 1px; height: 20px; background: var(--border); margin: 0 4px; flex-shrink: 0; }
+  .toolbar-select {
+    height: 28px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg);
+    padding: 0 8px; font-size: 12px; color: var(--text2); font-family: inherit;
+    cursor: pointer; outline: none; transition: all var(--transition);
+  }
+  .toolbar-select:hover { border-color: var(--brand); color: var(--brand); }
+  .toolbar-color-wrap { position: relative; display: inline-flex; }
+  .toolbar-color-input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+  .editor-body {
+    background: var(--surface); min-height: 340px; padding: 20px 24px;
+    font-size: 14.5px; line-height: 1.85; color: var(--text);
+    outline: none; font-family: inherit;
+  }
+  .editor-body h1 { font-size: 26px; font-weight: 800; margin: 20px 0 10px; color: var(--text); }
+  .editor-body h2 { font-size: 20px; font-weight: 700; margin: 18px 0 8px; color: var(--text); }
+  .editor-body h3 { font-size: 16px; font-weight: 700; margin: 14px 0 6px; color: var(--text); }
+  .editor-body blockquote {
+    border-left: 3px solid var(--brand); margin: 14px 0;
+    padding: 10px 18px; background: var(--brand-pastel); border-radius: 0 8px 8px 0;
+    color: var(--text2); font-style: italic;
+  }
+  .editor-body pre {
+    background: var(--surface2); border: 1px solid var(--border); border-radius: 8px;
+    padding: 14px 18px; font-family: 'JetBrains Mono', monospace; font-size: 13px;
+    overflow-x: auto; margin: 12px 0; color: var(--brand-deep);
+  }
+  .editor-body code {
+    font-family: 'JetBrains Mono', monospace; background: var(--surface2);
+    border: 1px solid var(--border); border-radius: 4px; padding: 2px 6px; font-size: 13px;
+  }
+  .editor-body table { border-collapse: collapse; width: 100%; margin: 14px 0; }
+  .editor-body table td, .editor-body table th {
+    border: 1px solid var(--border); padding: 8px 12px; font-size: 13.5px;
+  }
+  .editor-body table th { background: var(--surface2); font-weight: 700; }
+  .editor-body hr { border: none; border-top: 2px solid var(--border); margin: 20px 0; }
+  .editor-body ul, .editor-body ol { padding-left: 24px; margin: 8px 0; }
+  .editor-body li { margin-bottom: 4px; }
+  .editor-body a { color: var(--brand); text-decoration: underline; }
+  .editor-body [data-type="callout"] {
+    background: var(--brand-pastel); border: 1px solid var(--brand-light);
+    border-radius: 8px; padding: 12px 16px; margin: 12px 0; display: flex; gap: 10px; align-items: flex-start;
+  }
+  .editor-body:empty:before {
+    content: attr(placeholder); color: var(--text3); pointer-events: none;
+  }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .form-group { margin-bottom: 16px; }
+  .form-label { font-size: 12.5px; font-weight: 600; color: var(--text2); margin-bottom: 7px; display: block; }
+  .form-input, .form-select {
+    width: 100%; height: 40px; border-radius: 9px; border: 1.5px solid var(--border);
+    background: var(--bg); padding: 0 14px; font-size: 13.5px; color: var(--text);
+    font-family: inherit; outline: none; transition: all var(--transition);
+  }
+  .form-input:focus, .form-select:focus { border-color: var(--brand); box-shadow: 0 0 0 3px var(--brand-glow); }
+  .form-select { appearance: none; cursor: pointer; }
+  .tags-input-wrap {
+    border: 1.5px solid var(--border); border-radius: 9px; background: var(--bg);
+    padding: 6px 10px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+    cursor: text; min-height: 40px; transition: all var(--transition);
+  }
+  .tags-input-wrap:focus-within { border-color: var(--brand); box-shadow: 0 0 0 3px var(--brand-glow); }
+  .tag-item {
+    background: var(--brand-pastel); border: 1px solid var(--brand-light);
+    color: var(--brand-deep); border-radius: 20px; padding: 2px 10px;
+    font-size: 12px; font-weight: 500; display: flex; align-items: center; gap: 5px;
+  }
+  .tag-remove { cursor: pointer; color: var(--text3); }
+  .tag-remove:hover { color: #E57373; }
+  .tags-raw-input { border: none; outline: none; background: transparent; font-family: inherit; font-size: 13px; color: var(--text); min-width: 100px; }
+  .editor-actions { display: flex; gap: 10px; margin-top: 20px; }
+  .btn-outline {
+    height: 38px; padding: 0 18px; border-radius: 9px;
+    border: 1.5px solid var(--border); background: transparent;
+    font-family: inherit; font-size: 13px; font-weight: 600; color: var(--text2);
+    cursor: pointer; transition: all var(--transition);
+  }
+  .btn-outline:hover { border-color: var(--brand); color: var(--brand); background: var(--brand-pastel); }
+
+  /* ─── ADMIN / REPORTS ─── */
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; }
+  .stat-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 20px; transition: all var(--transition);
+  }
+  .stat-card:hover { box-shadow: var(--shadow); }
+  .stat-label { font-size: 12px; color: var(--text3); font-weight: 500; margin-bottom: 8px; }
+  .stat-value { font-size: 28px; font-weight: 800; color: var(--text); }
+  .stat-delta { font-size: 12px; margin-top: 4px; }
+  .delta-up { color: #28A745; }
+  .delta-down { color: #DC3545; }
+
+  .chart-bar-group { display: flex; flex-direction: column; gap: 10px; }
+  .chart-bar-item { display: flex; align-items: center; gap: 12px; }
+  .chart-bar-label { font-size: 12.5px; color: var(--text2); width: 180px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-shrink: 0; }
+  .chart-bar-track { flex: 1; height: 10px; background: var(--border); border-radius: 5px; overflow: hidden; }
+  .chart-bar-fill { height: 100%; border-radius: 5px; background: linear-gradient(90deg, var(--brand), var(--accent)); transition: width 0.6s ease; }
+  .chart-bar-val { font-size: 12px; color: var(--text3); width: 40px; text-align: right; font-family: 'JetBrains Mono', monospace; }
+
+  .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+  .table-head { display: flex; padding: 12px 20px; background: var(--surface2); border-bottom: 1px solid var(--border); }
+  .table-row { display: flex; padding: 13px 20px; border-bottom: 1px solid var(--border); align-items: center; transition: background var(--transition); cursor: pointer; }
+  .table-row:last-child { border-bottom: none; }
+  .table-row:hover { background: var(--brand-pastel); }
+  .col-title { flex: 2; font-size: 13px; }
+  .col-cat { flex: 1; font-size: 12.5px; color: var(--text2); }
+  .col-views { width: 80px; text-align: right; font-size: 12.5px; font-family: 'JetBrains Mono', monospace; color: var(--text3); }
+  .col-rate { width: 80px; text-align: right; font-size: 12.5px; }
+  .col-status { width: 100px; text-align: right; }
+  .col-actions { width: 80px; text-align: right; }
+  .th { font-size: 11px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; }
+
+  /* ─── MODAL ─── */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(10,20,35,0.55); backdrop-filter: blur(4px);
+    z-index: 500; display: none; align-items: flex-start; justify-content: center;
+    overflow-y: auto; padding: 32px 16px;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 20px;
+    padding: 32px; max-width: 520px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+    animation: slideUp 0.25s ease; margin: auto; flex-shrink: 0;
+  }
+  @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .modal-title { font-size: 18px; font-weight: 800; color: var(--text); margin-bottom: 20px; }
+  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; }
+
+  /* ─── NOTIFICATIONS ─── */
+  .notif-panel {
+    position: fixed; top: 70px; right: 20px; width: 360px; z-index: 300;
+    display: none; flex-direction: column; gap: 10px;
+  }
+  .notif-panel.show { display: flex; }
+  .notif-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    padding: 14px 16px; box-shadow: var(--shadow-hover); display: flex; gap: 12px;
+    animation: fadeIn 0.2s ease;
+  }
+  @keyframes fadeIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+  .notif-icon { font-size: 20px; flex-shrink: 0; }
+  .notif-title { font-size: 13px; font-weight: 700; color: var(--text); }
+  .notif-body { font-size: 12px; color: var(--text3); margin-top: 2px; }
+  .notif-time { font-size: 11px; color: var(--text3); margin-top: 5px; }
+
+  /* ─── SEARCH RESULTS ─── */
+  .search-result-tag { background: rgba(91,155,213,0.15); color: var(--brand); border-radius: 4px; padding: 0 2px; font-weight: 700; }
+
+  /* ─── TOAST ─── */
+  .toast {
+    position: fixed; bottom: 24px; right: 24px; z-index: 999;
+    background: var(--text); color: var(--surface); border-radius: 12px;
+    padding: 13px 20px; font-size: 13px; font-weight: 600;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+    transform: translateY(80px); opacity: 0;
+    transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .toast.show { transform: translateY(0); opacity: 1; }
+
+  /* ─── SCROLLBAR ─── */
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 900px) {
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .form-row { grid-template-columns: 1fr; }
+  }
+
+  /* ─── LINK POPOVER ─── */
+  .link-popover {
+    position: fixed; z-index: 9999; background: var(--surface);
+    border: 1.5px solid var(--border); border-radius: 14px;
+    box-shadow: 0 8px 32px rgba(44,100,160,0.18);
+    padding: 18px 20px; width: 340px;
+    display: none; flex-direction: column; gap: 12px;
+    animation: slideUp 0.18s ease;
+  }
+  .link-popover.show { display: flex; }
+  .link-popover-title { font-size: 13.5px; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 7px; }
+  .link-popover input {
+    width: 100%; height: 38px; border-radius: 9px; border: 1.5px solid var(--border);
+    background: var(--bg); padding: 0 12px; font-size: 13px; color: var(--text);
+    font-family: inherit; outline: none; transition: all var(--transition);
+  }
+  .link-popover input:focus { border-color: var(--brand); box-shadow: 0 0 0 3px var(--brand-glow); }
+  .link-popover-actions { display: flex; gap: 8px; justify-content: flex-end; }
+  .link-popover .btn-primary { height: 34px; padding: 0 16px; font-size: 13px; }
+  .link-popover .btn-outline { height: 34px; padding: 0 14px; font-size: 13px; }
+  .link-preview-bar {
+    position: fixed; z-index: 9998; background: var(--surface);
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 7px 14px; font-size: 12px; color: var(--brand);
+    box-shadow: var(--shadow); display: none; align-items: center; gap: 10px;
+    max-width: 340px;
+  }
+  .link-preview-bar.show { display: flex; }
+  .link-preview-bar a { color: var(--brand); text-overflow: ellipsis; overflow: hidden; white-space: nowrap; max-width: 200px; }
+  .link-action-btn { cursor: pointer; font-size: 11px; font-weight: 600; color: var(--text3); padding: 2px 7px; border-radius: 5px; border: 1px solid var(--border); background: var(--bg); transition: all var(--transition); white-space: nowrap; }
+  .link-action-btn:hover { background: var(--brand-pastel); color: var(--brand); border-color: var(--brand-light); }
+  .link-action-btn.remove { color: #E57373; border-color: #E57373; }
+  .link-action-btn.remove:hover { background: #FDECEA; }
+
+  /* ─── TEST CASE MODULE ─── */
+  .tc-toolbar { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:20px; }
+  .tc-filter-group { display:flex; gap:8px; flex-wrap:wrap; flex:1; }
+  .tc-tag { display:inline-flex; align-items:center; gap:5px; padding:3px 12px; border-radius:20px; font-size:11.5px; font-weight:600; border:1.5px solid transparent; cursor:pointer; transition:all var(--transition); }
+  .tc-tag.all    { background:var(--brand-pastel); color:var(--brand); border-color:var(--brand-light); }
+  .tc-tag.pass   { background:#D4EDDA; color:#155724; border-color:#A8D5B5; }
+  .tc-tag.fail   { background:#FDECEA; color:#C62828; border-color:#F5A0A0; }
+  .tc-tag.block  { background:#FFF3CD; color:#856404; border-color:#FFDD88; }
+  .tc-tag.na     { background:var(--surface2); color:var(--text3); border-color:var(--border); }
+  [data-theme="dark"] .tc-tag.pass  { background:#1B3A2A; color:#56C77A; border-color:#2A5A3A; }
+  [data-theme="dark"] .tc-tag.fail  { background:#3A1A1A; color:#E57373; border-color:#5A2A2A; }
+  [data-theme="dark"] .tc-tag.block { background:#3A2E0A; color:#F0C040; border-color:#5A4A1A; }
+
+  /* ─── SPREADSHEET ─── */
+  .sheet-wrap { border:1px solid var(--border); border-radius:12px; overflow:hidden; overflow-x:auto; user-select:none; }
+  .sheet-table { border-collapse:collapse; width:max-content; min-width:100%; table-layout:fixed; }
+  .sheet-table th, .sheet-table td { border-right:1px solid var(--border); border-bottom:1px solid var(--border); padding:0; margin:0; position:relative; }
+  .sheet-table th:last-child, .sheet-table td:last-child { border-right:none; }
+  /* Row number column */
+  .sheet-rn { width:42px; min-width:42px; background:var(--surface2); text-align:center; font-size:11px; color:var(--text3); font-family:'JetBrains Mono',monospace; font-weight:600; cursor:default; border-right:2px solid var(--border) !important; position:sticky; left:0; z-index:2; }
+  /* Header row */
+  .sheet-thead th { background:var(--surface2); font-size:11px; font-weight:700; color:var(--text3); text-transform:uppercase; letter-spacing:0.05em; height:34px; cursor:default; white-space:nowrap; position:sticky; top:0; z-index:3; }
+  .sheet-thead .sheet-rn { z-index:4; top:0; left:0; }
+  .sheet-th-inner { display:flex; align-items:center; justify-content:space-between; padding:0 10px; gap:6px; height:100%; }
+  .sheet-th-label { flex:1; overflow:hidden; text-overflow:ellipsis; }
+  .sheet-col-resize { width:4px; height:100%; cursor:col-resize; background:transparent; flex-shrink:0; border-radius:2px; transition:background 0.15s; }
+  .sheet-col-resize:hover, .sheet-col-resize.dragging { background:var(--brand); }
+  /* Data cells */
+  .sheet-cell { height:36px; font-size:13px; color:var(--text); outline:none; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+  .sheet-cell-inner { padding:0 10px; height:100%; display:flex; align-items:center; min-width:0; cursor:cell; }
+  .sheet-cell.selected { background:rgba(91,155,213,0.12); outline:2px solid var(--brand); outline-offset:-2px; z-index:1; }
+  .sheet-cell.editing .sheet-cell-inner { display:none; }
+  .sheet-cell input.cell-input {
+    display:none; position:absolute; inset:0; width:100%; height:100%;
+    border:none; outline:2px solid var(--brand); outline-offset:-2px;
+    background:var(--surface); padding:0 10px; font-size:13px;
+    color:var(--text); font-family:inherit; z-index:5;
+  }
+  .sheet-cell.editing input.cell-input { display:block; }
+  /* Row hover */
+  .sheet-tbody tr:hover td { background:var(--brand-pastel); }
+  .sheet-tbody tr:hover .sheet-rn { background:var(--brand-pastel); }
+  .sheet-tbody tr.selected-row td { background:rgba(91,155,213,0.08); }
+  .sheet-tbody tr.selected-row .sheet-rn { background:var(--brand); color:#fff; }
+  /* Add row/col buttons */
+  .sheet-add-row { width:100%; padding:8px; text-align:center; font-size:12px; color:var(--text3); cursor:pointer; border-top:1px solid var(--border); background:var(--surface); transition:all var(--transition); }
+  .sheet-add-row:hover { background:var(--brand-pastel); color:var(--brand); }
+  .sheet-add-col-th { width:36px; min-width:36px; cursor:pointer; text-align:center; }
+  .sheet-add-col-th:hover { background:var(--brand-pastel) !important; color:var(--brand); }
+  /* Context menu */
+  .sheet-ctx-menu {
+    position:fixed; z-index:9999; background:var(--surface); border:1px solid var(--border);
+    border-radius:10px; padding:6px; box-shadow:var(--shadow-hover);
+    min-width:180px; display:none;
+  }
+  .sheet-ctx-menu.show { display:block; }
+  .sheet-ctx-item { padding:8px 14px; border-radius:7px; font-size:13px; color:var(--text2); cursor:pointer; display:flex; align-items:center; gap:9px; transition:background var(--transition); }
+  .sheet-ctx-item:hover { background:var(--brand-pastel); color:var(--brand); }
+  .sheet-ctx-sep { height:1px; background:var(--border); margin:4px 0; }
+  /* Status cell chips */
+  .chip { display:inline-flex; align-items:center; padding:2px 10px; border-radius:20px; font-size:11.5px; font-weight:700; white-space:nowrap; }
+  .chip.pass    { background:#D4EDDA; color:#155724; }
+  .chip.fail    { background:#FDECEA; color:#C62828; }
+  .chip.blocked { background:#FFF3CD; color:#856404; }
+  .chip.pending-tc { background:var(--brand-pastel); color:var(--brand); }
+  .chip.na      { background:var(--surface2); color:var(--text3); border:1px solid var(--border); }
+  .chip.high    { background:#FDECEA; color:#C62828; }
+  .chip.medium  { background:#FFF3CD; color:#856404; }
+  .chip.low     { background:#D4EDDA; color:#155724; }
+  [data-theme="dark"] .chip.pass    { background:#1B3A2A; color:#56C77A; }
+  [data-theme="dark"] .chip.fail    { background:#3A1A1A; color:#E57373; }
+  [data-theme="dark"] .chip.blocked { background:#3A2E0A; color:#F0C040; }
+  [data-theme="dark"] .chip.high    { background:#3A1A1A; color:#E57373; }
+  [data-theme="dark"] .chip.medium  { background:#3A2E0A; color:#F0C040; }
+  [data-theme="dark"] .chip.low     { background:#1B3A2A; color:#56C77A; }
+  .tc-app-badge { padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600; background:var(--brand-pastel); color:var(--brand-deep); border:1px solid var(--brand-light); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .tc-priority { padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600; white-space:nowrap; }
+  .tc-priority.high   { background:#FDECEA; color:#C62828; }
+  .tc-priority.medium { background:#FFF3CD; color:#856404; }
+  .tc-priority.low    { background:#D4EDDA; color:#155724; }
+  [data-theme="dark"] .tc-priority.high   { background:#3A1A1A; color:#E57373; }
+  [data-theme="dark"] .tc-priority.medium { background:#3A2E0A; color:#F0C040; }
+  [data-theme="dark"] .tc-priority.low    { background:#1B3A2A; color:#56C77A; }
+  .tc-status-badge { padding:3px 10px; border-radius:20px; font-size:11px; font-weight:700; white-space:nowrap; }
+  .tc-status-badge.pass    { background:#D4EDDA; color:#155724; }
+  .tc-status-badge.fail    { background:#FDECEA; color:#C62828; }
+  .tc-status-badge.blocked { background:#FFF3CD; color:#856404; }
+  .tc-status-badge.na      { background:var(--surface2); color:var(--text3); }
+  .tc-status-badge.pending-tc { background:var(--brand-pastel); color:var(--brand); }
+  [data-theme="dark"] .tc-status-badge.pass    { background:#1B3A2A; color:#56C77A; }
+  [data-theme="dark"] .tc-status-badge.fail    { background:#3A1A1A; color:#E57373; }
+  [data-theme="dark"] .tc-status-badge.blocked { background:#3A2E0A; color:#F0C040; }
+
+  .tc-detail-wrap { max-width:880px; }
+  .tc-detail-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px; }
+  .tc-info-box { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:16px 18px; }
+  .tc-info-label { font-size:11px; font-weight:700; color:var(--text3); text-transform:uppercase; letter-spacing:0.07em; margin-bottom:6px; }
+  .tc-info-val { font-size:14px; font-weight:600; color:var(--text); }
+  .tc-step-list { display:flex; flex-direction:column; gap:10px; }
+  .tc-step {
+    display:grid; grid-template-columns:32px 1fr 1fr; gap:12px;
+    background:var(--surface); border:1px solid var(--border); border-radius:10px;
+    padding:12px 14px; align-items:start;
+  }
+  .tc-step-num { width:28px; height:28px; border-radius:50%; background:var(--brand); color:#fff; font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .tc-step-label { font-size:11px; font-weight:700; color:var(--text3); margin-bottom:4px; text-transform:uppercase; letter-spacing:0.05em; }
+  .tc-step-text { font-size:13.5px; color:var(--text2); line-height:1.6; }
+  .tc-expected { color:var(--accent); }
+  .tc-result-bar { display:flex; gap:10px; margin-top:20px; flex-wrap:wrap; }
+  .tc-run-btn { padding:8px 18px; border-radius:9px; border:none; font-family:inherit; font-size:13px; font-weight:700; cursor:pointer; transition:all var(--transition); }
+  .tc-run-pass  { background:#D4EDDA; color:#155724; }
+  .tc-run-fail  { background:#FDECEA; color:#C62828; }
+  .tc-run-block { background:#FFF3CD; color:#856404; }
+  .tc-run-na    { background:var(--surface2); color:var(--text3); border:1px solid var(--border); }
+  .tc-run-btn:hover { filter:brightness(0.93); transform:translateY(-1px); }
+
+  .tc-form-steps { display:flex; flex-direction:column; gap:12px; }
+  .tc-form-step {
+    background:var(--surface); border:1px solid var(--border); border-radius:10px;
+    padding:14px 16px; display:grid; grid-template-columns:32px 1fr 1fr 32px; gap:12px; align-items:start;
+  }
+  .tc-step-idx { width:28px; height:28px; border-radius:50%; background:var(--brand-pastel); color:var(--brand); font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:4px; }
+  .tc-step-textarea { width:100%; min-height:60px; border-radius:8px; border:1.5px solid var(--border); background:var(--bg); padding:8px 12px; font-size:13px; color:var(--text); font-family:inherit; outline:none; resize:vertical; transition:border-color var(--transition); }
+  .tc-step-textarea:focus { border-color:var(--brand); }
+  .tc-remove-step { width:28px; height:28px; border-radius:6px; border:none; background:transparent; color:var(--text3); cursor:pointer; font-size:16px; display:flex; align-items:center; justify-content:center; margin-top:4px; transition:all var(--transition); }
+  .tc-remove-step:hover { background:#FDECEA; color:#C62828; }
+  .add-step-btn { display:flex; align-items:center; gap:8px; padding:10px 16px; border-radius:9px; border:1.5px dashed var(--border); background:transparent; color:var(--text3); font-family:inherit; font-size:13px; cursor:pointer; transition:all var(--transition); width:100%; }
+  .add-step-btn:hover { border-color:var(--brand); color:var(--brand); background:var(--brand-pastel); }
+
+  .tc-stats-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:14px; margin-bottom:24px; }
+  .tc-stat-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:16px 18px; text-align:center; }
+  .tc-stat-num { font-size:28px; font-weight:800; }
+  .tc-stat-label { font-size:11.5px; color:var(--text3); margin-top:4px; }
+  .tc-donut-wrap { display:flex; gap:24px; align-items:center; flex-wrap:wrap; }
+  .tc-legend { display:flex; flex-direction:column; gap:8px; }
+  .tc-legend-item { display:flex; align-items:center; gap:8px; font-size:13px; }
+  .tc-legend-dot { width:12px; height:12px; border-radius:50%; flex-shrink:0; }
+
+</style>
+</head>
+<body>
+
+<!-- ========== SIDEBAR ========== -->
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">📚</div>
+    <div>
+      <div class="logo-text">QA Knowledge</div>
+      <div class="logo-sub">Hệ thống Quản lý Kiến thức</div>
+    </div>
+  </div>
+
+  <div class="sidebar-nav">
+    <div class="nav-section">
+      <div class="nav-label">Chính</div>
+      <div class="nav-item active" onclick="navigate('home')">
+        <span class="nav-icon">🏠</span> Trang chủ
+        <div class="nav-dot"></div>
+      </div>
+      <div class="nav-item" onclick="navigate('search-page')">
+        <span class="nav-icon">🔍</span> Tìm kiếm
+      </div>
+      <div class="nav-item" onclick="navigate('articles')">
+        <span class="nav-icon">📄</span> Tất cả bài viết
+      </div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Sản phẩm</div>
+      <div class="nav-item" onclick="filterByProduct('Base Workflow')">
+        <span class="nav-icon">⚡</span> Base Workflow
+      </div>
+      <div class="nav-item" onclick="filterByProduct('Base Wework')">
+        <span class="nav-icon">💼</span> Base Wework
+      </div>
+      <div class="nav-item" onclick="filterByProduct('Base Request')">
+        <span class="nav-icon">📋</span> Base Request
+      </div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Quản lý (Editor)</div>
+      <div class="nav-item" onclick="navigate('editor')">
+        <span class="nav-icon">✏️</span> Tạo bài viết
+      </div>
+      <div class="nav-item" onclick="navigate('pending')">
+        <span class="nav-icon">⏳</span> Chờ duyệt
+        <span class="nav-badge">3</span>
+      </div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">🧪 Test Cases</div>
+      <div class="nav-item" onclick="navigate('testcases')">
+        <span class="nav-icon">🧪</span> Danh sách Test Case
+      </div>
+      <div class="nav-item" onclick="navigate('tc-editor')">
+        <span class="nav-icon">➕</span> Tạo Test Case
+      </div>
+      <div class="nav-item" onclick="navigate('tc-stats')">
+        <span class="nav-icon">📈</span> Thống kê Test Case
+      </div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Admin</div>
+      <div class="nav-item" onclick="navigate('reports')">
+        <span class="nav-icon">📊</span> Báo cáo & Thống kê
+      </div>
+      <div class="nav-item" onclick="navigate('users')">
+        <span class="nav-icon">👥</span> Quản lý người dùng
+      </div>
+    </div>
+  </div>
+
+  <div class="sidebar-bottom">
+    <div class="user-card">
+      <div class="user-avatar">TL</div>
+      <div>
+        <div class="user-name">Tester Leader</div>
+        <div class="user-role">Admin · QA Team</div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- ========== TOPBAR ========== -->
+<div class="main">
+  <div class="topbar">
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input class="search-input" id="globalSearch" type="text" placeholder="Tìm kiếm bài viết, tài liệu, hướng dẫn..." oninput="handleSearch(this.value)" onfocus="showAuto()" onblur="hideAuto()">
+      <span class="search-shortcut">Ctrl K</span>
+      <div class="autocomplete-box" id="autoBox"></div>
+    </div>
+    <div class="topbar-actions">
+      <div class="btn-icon" onclick="toggleNotif()" title="Thông báo">🔔</div>
+      <div class="btn-icon" onclick="toggleTheme()" id="themeBtn" title="Đổi giao diện">🌙</div>
+      <button class="btn-primary" onclick="navigate('editor')">+ Tạo bài viết</button>
+    </div>
+  </div>
+
+  <!-- ========== PAGES ========== -->
+  <div class="content">
+
+    <!-- HOME -->
+    <div class="page active" id="page-home">
+      <div class="hero-banner">
+        <div class="hero-title">🎯 Chào mừng đến với KMS – QA Team</div>
+        <div class="hero-sub">Tra cứu hướng dẫn, quy trình test, tài liệu sản phẩm nhanh chóng. Giảm thiểu thời gian hỏi team, tăng hiệu suất làm việc.</div>
+        <div class="hero-stats">
+          <div class="hero-stat"><div class="hero-stat-num" id="hs-articles">47</div><div class="hero-stat-label">Bài viết</div></div>
+          <div class="hero-stat"><div class="hero-stat-num" id="hs-users">23</div><div class="hero-stat-label">Người dùng</div></div>
+          <div class="hero-stat"><div class="hero-stat-num" id="hs-views">1.2K</div><div class="hero-stat-label">Lượt xem / tháng</div></div>
+          <div class="hero-stat"><div class="hero-stat-num">98%</div><div class="hero-stat-label">Hài lòng</div></div>
+        </div>
+      </div>
+
+      <div class="section-title">🗂️ Danh mục <span>sản phẩm</span></div>
+      <div class="cards-grid">
+        <div class="cat-card" onclick="filterByProduct('Base Workflow')">
+          <div class="cat-icon">⚡</div>
+          <div class="cat-name">Base Workflow</div>
+          <div class="cat-count">18 bài viết</div>
+          <div class="cat-bar"><div class="cat-bar-fill" style="width:80%"></div></div>
+        </div>
+        <div class="cat-card" onclick="filterByProduct('Base Wework')">
+          <div class="cat-icon">💼</div>
+          <div class="cat-name">Base Wework</div>
+          <div class="cat-count">15 bài viết</div>
+          <div class="cat-bar"><div class="cat-bar-fill" style="width:65%"></div></div>
+        </div>
+        <div class="cat-card" onclick="filterByProduct('Base Request')">
+          <div class="cat-icon">📋</div>
+          <div class="cat-name">Base Request</div>
+          <div class="cat-count">14 bài viết</div>
+          <div class="cat-bar"><div class="cat-bar-fill" style="width:60%"></div></div>
+        </div>
+        <div class="cat-card" onclick="navigate('editor')">
+          <div class="cat-icon">➕</div>
+          <div class="cat-name">Thêm danh mục</div>
+          <div class="cat-count">Tạo sản phẩm mới</div>
+          <div class="cat-bar"><div class="cat-bar-fill" style="width:0%"></div></div>
+        </div>
+      </div>
+
+      <div class="section-title">🔥 Bài viết <span>xem nhiều nhất</span></div>
+      <div class="articles-list" id="hot-articles"></div>
+
+      <div style="margin-top:28px"></div>
+      <div class="section-title">🆕 Bài viết <span>mới nhất</span></div>
+      <div class="articles-list" id="new-articles"></div>
+    </div>
+
+    <!-- ALL ARTICLES -->
+    <div class="page" id="page-articles">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+        <div class="section-title" style="margin:0">📄 Tất cả bài viết</div>
+        <div style="display:flex;gap:10px">
+          <select class="form-select" style="width:160px;height:36px" onchange="filterArticles(this.value,'cat')" id="filterCat">
+            <option value="">Tất cả danh mục</option>
+            <option>Base Workflow</option>
+            <option>Base Wework</option>
+            <option>Base Request</option>
+          </select>
+          <select class="form-select" style="width:140px;height:36px" onchange="filterArticles(this.value,'status')" id="filterStatus">
+            <option value="">Tất cả trạng thái</option>
+            <option value="published">Đã xuất bản</option>
+            <option value="draft">Nháp</option>
+            <option value="pending">Chờ duyệt</option>
+          </select>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <div class="table-head">
+          <div class="col-title th">Tiêu đề</div>
+          <div class="col-cat th">Danh mục</div>
+          <div class="col-views th">Lượt xem</div>
+          <div class="col-rate th">Hài lòng</div>
+          <div class="col-status th">Trạng thái</div>
+          <div class="col-actions th">Thao tác</div>
+        </div>
+        <div id="all-articles-list"></div>
+      </div>
+    </div>
+
+    <!-- ARTICLE DETAIL -->
+    <div class="page" id="page-detail">
+      <div class="article-detail-wrap">
+        <div class="back-btn" onclick="goBack()">← Quay lại</div>
+        <div class="article-detail-header">
+          <div class="article-detail-title" id="detail-title"></div>
+          <div class="article-detail-meta" id="detail-meta"></div>
+          <div class="article-tags" id="detail-tags"></div>
+        </div>
+        <div class="article-detail-body" id="detail-body"></div>
+        <div class="video-embed" id="detail-video" style="display:none">
+          ▶️ <strong>Video hướng dẫn</strong><br>
+          <span style="font-size:12px;color:var(--text3)">Nhúng YouTube video tại đây</span>
+        </div>
+        <div class="feedback-box">
+          <div class="feedback-title">Bài viết này có hữu ích với bạn không?</div>
+          <div class="feedback-btns">
+            <button class="feedback-btn yes" onclick="giveFeedback('yes',this)">👍 Hữu ích</button>
+            <button class="feedback-btn no" onclick="giveFeedback('no',this)">👎 Không hữu ích</button>
+          </div>
+          <div id="feedback-msg" style="font-size:12px;color:var(--text3);margin-top:12px;display:none"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SEARCH PAGE -->
+    <div class="page" id="page-search-page">
+      <div class="section-title">🔍 Kết quả tìm kiếm cho: <span id="search-keyword-label">""</span></div>
+      <div id="search-results-list" class="articles-list"></div>
+    </div>
+
+    <!-- EDITOR -->
+    <div class="page" id="page-editor">
+      <div class="section-title">✏️ <span>Tạo bài viết mới</span></div>
+      <div class="editor-wrap">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Tiêu đề bài viết *</label>
+            <input type="text" class="form-input" id="ed-title" placeholder="Nhập tiêu đề...">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Danh mục *</label>
+            <select class="form-select" id="ed-cat">
+              <option value="">-- Chọn sản phẩm --</option>
+              <option>Base Workflow</option>
+              <option>Base Wework</option>
+              <option>Base Request</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tags</label>
+          <div class="tags-input-wrap" id="tagsWrap">
+            <input type="text" class="tags-raw-input" id="tagInput" placeholder="Thêm tag, nhấn Enter..." onkeydown="addTag(event)">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Nội dung bài viết *</label>
+          <div class="editor-wrap-box">
+            <div class="editor-toolbar">
+              <div class="toolbar-group">
+                <select class="toolbar-select" onchange="fmtBlock('ed-body',this.value);this.value=''" title="Kiểu đoạn văn">
+                  <option value="">Đoạn văn</option>
+                  <option value="h1">Tiêu đề 1</option>
+                  <option value="h2">Tiêu đề 2</option>
+                  <option value="h3">Tiêu đề 3</option>
+                  <option value="pre">Code block</option>
+                  <option value="blockquote">Trích dẫn</option>
+                </select>
+              </div>
+              <div class="toolbar-sep"></div>
+              <div class="toolbar-group">
+                <button class="toolbar-btn" onclick="fmtDoc('bold')" title="In đậm (Ctrl+B)"><b>B</b></button>
+                <button class="toolbar-btn" onclick="fmtDoc('italic')" title="In nghiêng (Ctrl+I)"><i style="font-style:italic">I</i></button>
+                <button class="toolbar-btn" onclick="fmtDoc('underline')" title="Gạch chân (Ctrl+U)"><u>U</u></button>
+                <button class="toolbar-btn" onclick="fmtDoc('strikeThrough')" title="Gạch giữa"><s>S</s></button>
+              </div>
+              <div class="toolbar-sep"></div>
+              <div class="toolbar-group">
+                <button class="toolbar-btn" onclick="fmtDoc('insertUnorderedList')" title="Danh sách dấu chấm">
+                  <svg viewBox="0 0 16 16"><circle cx="2" cy="4" r="1.5"/><rect x="5" y="3" width="9" height="2" rx="1"/><circle cx="2" cy="8" r="1.5"/><rect x="5" y="7" width="9" height="2" rx="1"/><circle cx="2" cy="12" r="1.5"/><rect x="5" y="11" width="9" height="2" rx="1"/></svg>
+                </button>
+                <button class="toolbar-btn" onclick="fmtDoc('insertOrderedList')" title="Danh sách số">
+                  <svg viewBox="0 0 16 16"><text x="0" y="5" font-size="5" font-family="monospace">1.</text><rect x="5" y="3" width="9" height="2" rx="1"/><text x="0" y="9" font-size="5" font-family="monospace">2.</text><rect x="5" y="7" width="9" height="2" rx="1"/><text x="0" y="13" font-size="5" font-family="monospace">3.</text><rect x="5" y="11" width="9" height="2" rx="1"/></svg>
+                </button>
+                <button class="toolbar-btn" onclick="insertCheckbox('ed-body')" title="Checkbox">☑</button>
+              </div>
+              <div class="toolbar-sep"></div>
+              <div class="toolbar-group">
+                <button class="toolbar-btn" onclick="fmtDoc('outdent')" title="Giảm thụt lề">⇤</button>
+                <button class="toolbar-btn" onclick="fmtDoc('indent')" title="Tăng thụt lề">⇥</button>
+              </div>
+              <div class="toolbar-sep"></div>
+              <div class="toolbar-group">
+                <button class="toolbar-btn" onclick="fmtDoc('justifyLeft')" title="Căn trái">
+                  <svg viewBox="0 0 14 14"><rect x="0" y="1" width="14" height="2" rx="1"/><rect x="0" y="5" width="9" height="2" rx="1"/><rect x="0" y="9" width="14" height="2" rx="1"/><rect x="0" y="13" width="7" height="2" rx="1"/></svg>
+                </button>
+                <button class="toolbar-btn" onclick="fmtDoc('justifyCenter')" title="Căn giữa">
+                  <svg viewBox="0 0 14 14"><rect x="0" y="1" width="14" height="2" rx="1"/><rect x="2.5" y="5" width="9" height="2" rx="1"/><rect x="0" y="9" width="14" height="2" rx="1"/><rect x="3.5" y="13" width="7" height="2" rx="1"/></svg>
+                </button>
+                <button class="toolbar-btn" onclick="fmtDoc('justifyRight')" title="Căn phải">
+                  <svg viewBox="0 0 14 14"><rect x="0" y="1" width="14" height="2" rx="1"/><rect x="5" y="5" width="9" height="2" rx="1"/><rect x="0" y="9" width="14" height="2" rx="1"/><rect x="7" y="13" width="7" height="2" rx="1"/></svg>
+                </button>
+              </div>
+              <div class="toolbar-sep"></div>
+              <div class="toolbar-group">
+                <div class="toolbar-color-wrap" title="Màu chữ">
+                  <button class="toolbar-btn">🎨 A</button>
+                  <input class="toolbar-color-input" type="color" onchange="fmtDoc('foreColor',this.value)">
+                </div>
+                <div class="toolbar-color-wrap" title="Màu nền chữ">
+                  <button class="toolbar-btn">🖊 ▌</button>
+                  <input class="toolbar-color-input" type="color" onchange="fmtDoc('hiliteColor',this.value)">
+                </div>
+              </div>
+              <div class="toolbar-sep"></div>
+              <div class="toolbar-group">
+                <button class="toolbar-btn" onclick="insertCodeBlock('ed-body')" title="Code block">〈/〉</button>
+                <button class="toolbar-btn" onclick="insertCallout('ed-body')" title="Callout box">💡</button>
+                <button class="toolbar-btn" onclick="insertDivider('ed-body')" title="Đường kẻ ngang">—</button>
+                <button class="toolbar-btn" onclick="insertTable('ed-body')" title="Chèn bảng">⊞</button>
+                <button class="toolbar-btn" onclick="openLinkPopover('ed-body')" title="Chèn / Sửa liên kết">🔗</button>
+              </div>
+              <div class="toolbar-sep"></div>
+              <div class="toolbar-group">
+                <button class="toolbar-btn" onclick="fmtDoc('undo')" title="Hoàn tác (Ctrl+Z)">↩</button>
+                <button class="toolbar-btn" onclick="fmtDoc('redo')" title="Làm lại (Ctrl+Y)">↪</button>
+              </div>
+            </div>
+            <div class="editor-body" id="ed-body" contenteditable="true" placeholder="Bắt đầu nhập nội dung bài viết..."></div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Đính kèm file (PDF, Word, Excel, Hình ảnh – tối đa 100MB)</label>
+            <input type="file" class="form-input" style="padding:7px 14px;height:auto" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg">
+          </div>
+          <div class="form-group">
+            <label class="form-label">YouTube Video URL</label>
+            <input type="text" class="form-input" id="ed-video" placeholder="https://youtube.com/...">
+          </div>
+        </div>
+        <div class="editor-actions">
+          <button class="btn-outline" onclick="saveArticle('draft')">💾 Lưu nháp</button>
+          <button class="btn-outline" onclick="saveArticle('pending')">📤 Submit duyệt</button>
+          <button class="btn-primary" onclick="saveArticle('published')">🚀 Xuất bản</button>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- TEST CASES LIST -->
+    <div class="page" id="page-testcases">
+      <div class="tc-toolbar">
+        <div class="section-title" style="margin:0;white-space:nowrap">🧪 Quản lý <span>Test Case</span></div>
+        <div class="tc-filter-group">
+          <select class="form-select" style="height:36px;width:160px" id="tc-filter-app" onchange="renderTCList()">
+            <option value="">Tất cả App</option>
+            <option>Base Workflow</option>
+            <option>Base Wework</option>
+            <option>Base Request</option>
+          </select>
+          <select class="form-select" style="height:36px;width:160px" id="tc-filter-feature" onchange="renderTCList()">
+            <option value="">Tất cả tính năng</option>
+          </select>
+          <select class="form-select" style="height:36px;width:140px" id="tc-filter-status" onchange="renderTCList()">
+            <option value="">Tất cả trạng thái</option>
+            <option value="pass">✅ Pass</option>
+            <option value="fail">❌ Fail</option>
+            <option value="blocked">⚠️ Blocked</option>
+            <option value="pending-tc">⏳ Chưa test</option>
+            <option value="na">N/A</option>
+          </select>
+          <select class="form-select" style="height:36px;width:130px" id="tc-filter-priority" onchange="renderTCList()">
+            <option value="">Mọi ưu tiên</option>
+            <option value="high">🔴 Cao</option>
+            <option value="medium">🟡 Trung bình</option>
+            <option value="low">🟢 Thấp</option>
+          </select>
+        </div>
+        <button class="btn-primary" style="white-space:nowrap" onclick="navigate('tc-editor')">+ Tạo Test Case</button>
+        <button class="btn-outline" style="height:36px;white-space:nowrap" onclick="showToast('📥 Đang xuất Excel...')">📥 Xuất Excel</button>
+      </div>
+
+      <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap" id="tc-quick-filters">
+        <span class="tc-tag all" onclick="quickFilter('')">Tất cả</span>
+        <span class="tc-tag pass" onclick="quickFilter('pass')">✅ Pass</span>
+        <span class="tc-tag fail" onclick="quickFilter('fail')">❌ Fail</span>
+        <span class="tc-tag block" onclick="quickFilter('blocked')">⚠️ Blocked</span>
+        <span class="tc-tag na" onclick="quickFilter('pending-tc')">⏳ Chưa test</span>
+      </div>
+
+      <!-- SHEET TOOLBAR -->
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+        <div style="font-size:11.5px;color:var(--text3);display:flex;align-items:center;gap:4px">
+          <span id="sheet-cell-ref" style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--brand);min-width:48px">A1</span>
+        </div>
+        <div style="flex:1;border:1px solid var(--border);border-radius:8px;background:var(--bg);height:32px;display:flex;align-items:center;padding:0 12px;font-size:13px;color:var(--text2)" id="sheet-formula-bar">Nhấn vào ô để chỉnh sửa</div>
+        <div style="display:flex;gap:6px">
+          <button class="btn-outline" style="height:32px;font-size:12px;padding:0 12px" onclick="sheetUndo()" title="Hoàn tác">↩ Undo</button>
+          <button class="btn-outline" style="height:32px;font-size:12px;padding:0 12px" onclick="sheetRedo()" title="Làm lại">↪ Redo</button>
+          <button class="btn-outline" style="height:32px;font-size:12px;padding:0 12px" onclick="freezeToggle()">❄️ Freeze</button>
+          <button class="btn-outline" style="height:32px;font-size:12px;padding:0 12px" onclick="exportSheetCSV()">📥 CSV</button>
+          <button class="btn-outline" style="height:32px;font-size:12px;padding:0 12px" onclick="importCSVClick()">📤 Import</button>
+          <input type="file" id="csv-import-input" accept=".csv" style="display:none" onchange="importCSV(this)">
+        </div>
+      </div>
+
+      <!-- SPREADSHEET -->
+      <div class="sheet-wrap" id="sheet-wrap" style="max-height:calc(100vh - 280px);overflow:auto">
+        <table class="sheet-table" id="sheet-table" cellspacing="0" cellpadding="0"></table>
+      </div>
+
+      <!-- Add Row button -->
+      <div class="sheet-add-row" onclick="sheetAddRow()">＋ Thêm hàng mới</div>
+
+      <div id="tc-empty" style="display:none;padding:48px;text-align:center;color:var(--text3)">
+        🔍 Không tìm thấy test case nào phù hợp
+      </div>
+    </div>
+
+    <!-- TEST CASE DETAIL -->
+    <div class="page" id="page-tc-detail">
+      <div class="tc-detail-wrap">
+        <div class="back-btn" onclick="goBack()">← Quay lại</div>
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:20px;flex-wrap:wrap">
+          <div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text3);margin-bottom:6px" id="tc-detail-id"></div>
+            <div style="font-size:22px;font-weight:800;color:var(--text);line-height:1.3" id="tc-detail-title"></div>
+          </div>
+          <div style="display:flex;gap:8px;flex-shrink:0">
+            <button class="btn-outline" style="height:34px;font-size:12px" onclick="editCurrentTC()">✏️ Sửa</button>
+            <button class="btn-outline" style="height:34px;font-size:12px;border-color:#E57373;color:#E57373" onclick="askDeleteTC()">🗑️ Xóa</button>
+          </div>
+        </div>
+
+        <div class="tc-detail-grid">
+          <div class="tc-info-box"><div class="tc-info-label">App</div><div class="tc-info-val" id="tc-d-app"></div></div>
+          <div class="tc-info-box"><div class="tc-info-label">Tính năng</div><div class="tc-info-val" id="tc-d-feature"></div></div>
+          <div class="tc-info-box"><div class="tc-info-label">Loại kiểm thử</div><div class="tc-info-val" id="tc-d-type"></div></div>
+          <div class="tc-info-box"><div class="tc-info-label">Mức ưu tiên</div><div class="tc-info-val" id="tc-d-priority"></div></div>
+          <div class="tc-info-box"><div class="tc-info-label">Điều kiện tiên quyết</div><div class="tc-info-val" id="tc-d-precond" style="font-weight:400;font-size:13px;color:var(--text2)"></div></div>
+          <div class="tc-info-box"><div class="tc-info-label">Người tạo / Người test</div><div class="tc-info-val" id="tc-d-author"></div></div>
+        </div>
+
+        <div class="section-title" style="font-size:14px;margin-bottom:12px">📋 Các bước thực hiện</div>
+        <div class="tc-step-list" id="tc-d-steps"></div>
+
+        <div style="margin-top:24px">
+          <div class="section-title" style="font-size:14px;margin-bottom:12px">🎯 Cập nhật kết quả</div>
+          <div style="margin-bottom:10px">
+            <label class="form-label">Ghi chú kết quả thực tế</label>
+            <textarea class="tc-step-textarea" id="tc-d-actual-note" style="min-height:80px" placeholder="Mô tả kết quả thực tế, lỗi gặp phải..."></textarea>
+          </div>
+          <div class="tc-result-bar">
+            <button class="tc-run-btn tc-run-pass"  onclick="updateTCStatus('pass')">✅ Pass</button>
+            <button class="tc-run-btn tc-run-fail"  onclick="updateTCStatus('fail')">❌ Fail</button>
+            <button class="tc-run-btn tc-run-block" onclick="updateTCStatus('blocked')">⚠️ Blocked</button>
+            <button class="tc-run-btn tc-run-na"    onclick="updateTCStatus('na')">N/A</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TC EDITOR (Create / Edit) -->
+    <div class="page" id="page-tc-editor">
+      <div class="section-title" id="tc-editor-title">➕ <span>Tạo Test Case mới</span></div>
+      <div style="max-width:860px">
+        <input type="hidden" id="tc-edit-id">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Tên Test Case *</label>
+            <input type="text" class="form-input" id="tc-name" placeholder="VD: Kiểm tra đăng nhập thành công">
+          </div>
+          <div class="form-group">
+            <label class="form-label">App *</label>
+            <select class="form-select" id="tc-app" onchange="updateFeatureDropdown('tc-feature','tc-app')">
+              <option value="">-- Chọn App --</option>
+              <option>Base Workflow</option>
+              <option>Base Wework</option>
+              <option>Base Request</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Tính năng *</label>
+            <select class="form-select" id="tc-feature">
+              <option value="">-- Chọn tính năng --</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tính năng mới (nếu chưa có trong danh sách)</label>
+            <input type="text" class="form-input" id="tc-feature-custom" placeholder="Nhập tên tính năng mới...">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Loại kiểm thử</label>
+            <select class="form-select" id="tc-type">
+              <option>Functional</option>
+              <option>Regression</option>
+              <option>Smoke</option>
+              <option>Integration</option>
+              <option>Performance</option>
+              <option>Security</option>
+              <option>UI/UX</option>
+              <option>API</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Mức ưu tiên</label>
+            <select class="form-select" id="tc-priority">
+              <option value="high">🔴 Cao</option>
+              <option value="medium" selected>🟡 Trung bình</option>
+              <option value="low">🟢 Thấp</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Điều kiện tiên quyết</label>
+          <input type="text" class="form-input" id="tc-precond" placeholder="VD: Đã đăng nhập tài khoản Admin, có ít nhất 1 workflow tồn tại">
+        </div>
+
+        <div class="form-group">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+            <label class="form-label" style="margin:0">Các bước thực hiện *</label>
+            <button class="add-step-btn" style="width:auto;padding:6px 14px" onclick="addTCStep()">+ Thêm bước</button>
+          </div>
+          <div class="tc-form-steps" id="tc-steps-form"></div>
+        </div>
+
+        <div class="editor-actions">
+          <button class="btn-outline" onclick="navigate('testcases')">Hủy</button>
+          <button class="btn-primary" onclick="saveTCForm()">💾 Lưu Test Case</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TC STATS -->
+    <div class="page" id="page-tc-stats">
+      <div class="section-title">📈 Thống kê <span>Test Case</span></div>
+      <div class="tc-stats-grid" id="tc-stats-cards"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:28px">
+        <div>
+          <div class="section-title" style="font-size:14px;margin-bottom:14px">🍩 Tỷ lệ kết quả</div>
+          <div class="tc-donut-wrap">
+            <canvas id="tc-donut" width="160" height="160"></canvas>
+            <div class="tc-legend" id="tc-legend"></div>
+          </div>
+        </div>
+        <div>
+          <div class="section-title" style="font-size:14px;margin-bottom:14px">📊 Theo App</div>
+          <div class="chart-bar-group" id="tc-app-chart"></div>
+        </div>
+      </div>
+      <div>
+        <div class="section-title" style="font-size:14px;margin-bottom:14px">📋 Theo tính năng</div>
+        <div class="table-wrap">
+          <div class="table-head">
+            <div class="col-cat th">App</div>
+            <div class="col-cat th">Tính năng</div>
+            <div class="col-views th">Tổng TC</div>
+            <div class="col-views th">Pass</div>
+            <div class="col-views th">Fail</div>
+            <div class="col-rate th">Tỷ lệ pass</div>
+          </div>
+          <div id="tc-feature-table"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PENDING -->
+    <div class="page" id="page-pending">
+      <div class="section-title">⏳ Bài viết <span>chờ duyệt</span></div>
+      <div class="table-wrap">
+        <div class="table-head">
+          <div class="col-title th">Tiêu đề</div>
+          <div class="col-cat th">Danh mục</div>
+          <div class="col-views th">Ngày tạo</div>
+          <div class="col-status th">Trạng thái</div>
+          <div class="col-actions th" style="width:160px">Thao tác</div>
+        </div>
+        <div id="pending-list"></div>
+      </div>
+    </div>
+
+    <!-- REPORTS -->
+    <div class="page" id="page-reports">
+      <div class="section-title">📊 Báo cáo & <span>Thống kê</span></div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">Tổng bài viết</div>
+          <div class="stat-value">47</div>
+          <div class="stat-delta delta-up">↑ +5 tuần này</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Lượt xem tháng này</div>
+          <div class="stat-value">1,248</div>
+          <div class="stat-delta delta-up">↑ +18% so với tháng trước</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Tỷ lệ hài lòng</div>
+          <div class="stat-value">98%</div>
+          <div class="stat-delta delta-up">↑ +2% so với tháng trước</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Bài viết cần review</div>
+          <div class="stat-value">6</div>
+          <div class="stat-delta delta-down">Chưa cập nhật >3 tháng</div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:28px">
+        <div>
+          <div class="section-title" style="font-size:14px">🏆 Top bài viết xem nhiều nhất</div>
+          <div class="chart-bar-group" id="top-views-chart"></div>
+        </div>
+        <div>
+          <div class="section-title" style="font-size:14px">🔍 Từ khóa tìm kiếm phổ biến</div>
+          <div class="chart-bar-group" id="top-search-chart"></div>
+        </div>
+      </div>
+
+      <div class="section-title" style="font-size:14px">📋 Thống kê lượt truy cập theo ngày (7 ngày qua)</div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:28px">
+        <canvas id="lineChart" height="90"></canvas>
+      </div>
+
+      <div style="display:flex;gap:10px;margin-bottom:16px">
+        <button class="btn-primary" style="height:34px;font-size:12px" onclick="showToast('📥 Đang xuất báo cáo Excel...')">📥 Xuất Excel</button>
+        <button class="btn-outline" style="height:34px;font-size:12px" onclick="showToast('📄 Đang tạo file PDF...')">📄 Xuất PDF</button>
+      </div>
+    </div>
+
+    <!-- USERS -->
+    <div class="page" id="page-users">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+        <div class="section-title" style="margin:0">👥 Quản lý <span>người dùng</span></div>
+        <button class="btn-primary" onclick="openAddUser()">+ Thêm người dùng</button>
+      </div>
+      <div class="table-wrap" id="users-table"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ========== NOTIFICATIONS PANEL ========== -->
+<div class="notif-panel" id="notifPanel">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;box-shadow:var(--shadow-hover)">
+    <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:12px">🔔 Thông báo</div>
+    <div class="notif-card">
+      <div class="notif-icon">📄</div>
+      <div>
+        <div class="notif-title">Bài viết mới cần duyệt</div>
+        <div class="notif-body">"Hướng dẫn test Base Request v2.5" đang chờ duyệt</div>
+        <div class="notif-time">5 phút trước</div>
+      </div>
+    </div>
+    <div class="notif-card" style="margin-top:8px">
+      <div class="notif-icon">👍</div>
+      <div>
+        <div class="notif-title">Phản hồi bài viết</div>
+        <div class="notif-body">Nguyễn Văn A đánh giá "Hữu ích" bài viết của bạn</div>
+        <div class="notif-time">30 phút trước</div>
+      </div>
+    </div>
+    <div class="notif-card" style="margin-top:8px">
+      <div class="notif-icon">⚠️</div>
+      <div>
+        <div class="notif-title">Bài viết cần cập nhật</div>
+        <div class="notif-body">6 bài viết chưa được cập nhật trong 3 tháng</div>
+        <div class="notif-time">Hôm nay</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== MODAL ADD USER ========== -->
+<div class="modal-overlay" id="addUserModal">
+  <div class="modal">
+    <div class="modal-title">➕ Thêm người dùng mới</div>
+    <div class="form-group">
+      <label class="form-label">Họ và tên *</label>
+      <input type="text" class="form-input" id="new-user-name" placeholder="Nguyễn Văn A">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Email *</label>
+      <input type="email" class="form-input" id="new-user-email" placeholder="user@company.com">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Vai trò</label>
+      <select class="form-select" id="new-user-role">
+        <option>Viewer</option>
+        <option>Editor</option>
+        <option>Admin</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Bộ phận</label>
+      <input type="text" class="form-input" id="new-user-dept" placeholder="Dev / QA / Sales...">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-outline" onclick="closeModal()">Hủy</button>
+      <button class="btn-primary" onclick="addUser()">✅ Thêm người dùng</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== MODAL EDIT ARTICLE ========== -->
+<div class="modal-overlay" id="editArticleModal">
+  <div class="modal" style="max-width:680px;width:95%">
+    <div class="modal-title">✏️ Chỉnh sửa bài viết</div>
+    <input type="hidden" id="edit-article-id">
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Tiêu đề *</label>
+        <input type="text" class="form-input" id="edit-title" placeholder="Nhập tiêu đề...">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Danh mục *</label>
+        <select class="form-select" id="edit-cat">
+          <option value="">-- Chọn sản phẩm --</option>
+          <option>Base Workflow</option>
+          <option>Base Wework</option>
+          <option>Base Request</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Tags</label>
+      <div class="tags-input-wrap" id="editTagsWrap">
+        <input type="text" class="tags-raw-input" id="editTagInput" placeholder="Thêm tag, nhấn Enter..." onkeydown="addEditTag(event)">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Nội dung *</label>
+      <div class="editor-wrap-box">
+        <div class="editor-toolbar">
+          <div class="toolbar-group">
+            <select class="toolbar-select" onchange="fmtBlock('edit-body',this.value);this.value=''" title="Kiểu đoạn văn">
+              <option value="">Đoạn văn</option>
+              <option value="h1">Tiêu đề 1</option>
+              <option value="h2">Tiêu đề 2</option>
+              <option value="h3">Tiêu đề 3</option>
+              <option value="pre">Code block</option>
+              <option value="blockquote">Trích dẫn</option>
+            </select>
+          </div>
+          <div class="toolbar-sep"></div>
+          <div class="toolbar-group">
+            <button class="toolbar-btn" onclick="fmtEdit('bold')" title="In đậm"><b>B</b></button>
+            <button class="toolbar-btn" onclick="fmtEdit('italic')" title="In nghiêng"><i style="font-style:italic">I</i></button>
+            <button class="toolbar-btn" onclick="fmtEdit('underline')" title="Gạch chân"><u>U</u></button>
+            <button class="toolbar-btn" onclick="fmtEdit('strikeThrough')" title="Gạch giữa"><s>S</s></button>
+          </div>
+          <div class="toolbar-sep"></div>
+          <div class="toolbar-group">
+            <button class="toolbar-btn" onclick="fmtEdit('insertUnorderedList')" title="Danh sách">
+              <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><circle cx="2" cy="4" r="1.5"/><rect x="5" y="3" width="9" height="2" rx="1"/><circle cx="2" cy="8" r="1.5"/><rect x="5" y="7" width="9" height="2" rx="1"/><circle cx="2" cy="12" r="1.5"/><rect x="5" y="11" width="9" height="2" rx="1"/></svg>
+            </button>
+            <button class="toolbar-btn" onclick="fmtEdit('insertOrderedList')" title="Số thứ tự">1.</button>
+            <button class="toolbar-btn" onclick="insertCheckbox('edit-body')" title="Checkbox">☑</button>
+          </div>
+          <div class="toolbar-sep"></div>
+          <div class="toolbar-group">
+            <button class="toolbar-btn" onclick="fmtEdit('justifyLeft')" title="Căn trái">
+              <svg viewBox="0 0 14 14" width="14" height="14" fill="currentColor"><rect x="0" y="1" width="14" height="2" rx="1"/><rect x="0" y="5" width="9" height="2" rx="1"/><rect x="0" y="9" width="14" height="2" rx="1"/><rect x="0" y="13" width="7" height="2" rx="1"/></svg>
+            </button>
+            <button class="toolbar-btn" onclick="fmtEdit('justifyCenter')" title="Căn giữa">
+              <svg viewBox="0 0 14 14" width="14" height="14" fill="currentColor"><rect x="0" y="1" width="14" height="2" rx="1"/><rect x="2.5" y="5" width="9" height="2" rx="1"/><rect x="0" y="9" width="14" height="2" rx="1"/><rect x="3.5" y="13" width="7" height="2" rx="1"/></svg>
+            </button>
+            <button class="toolbar-btn" onclick="fmtEdit('justifyRight')" title="Căn phải">
+              <svg viewBox="0 0 14 14" width="14" height="14" fill="currentColor"><rect x="0" y="1" width="14" height="2" rx="1"/><rect x="5" y="5" width="9" height="2" rx="1"/><rect x="0" y="9" width="14" height="2" rx="1"/><rect x="7" y="13" width="7" height="2" rx="1"/></svg>
+            </button>
+          </div>
+          <div class="toolbar-sep"></div>
+          <div class="toolbar-group">
+            <div class="toolbar-color-wrap" title="Màu chữ">
+              <button class="toolbar-btn">🎨 A</button>
+              <input class="toolbar-color-input" type="color" onchange="fmtEdit('foreColor',this.value)">
+            </div>
+            <div class="toolbar-color-wrap" title="Màu nền">
+              <button class="toolbar-btn">🖊 ▌</button>
+              <input class="toolbar-color-input" type="color" onchange="fmtEdit('hiliteColor',this.value)">
+            </div>
+          </div>
+          <div class="toolbar-sep"></div>
+          <div class="toolbar-group">
+            <button class="toolbar-btn" onclick="insertCodeBlock('edit-body')" title="Code block">〈/〉</button>
+            <button class="toolbar-btn" onclick="insertCallout('edit-body')" title="Callout">💡</button>
+            <button class="toolbar-btn" onclick="insertDivider('edit-body')" title="Đường kẻ">—</button>
+            <button class="toolbar-btn" onclick="insertTable('edit-body')" title="Bảng">⊞</button>
+          </div>
+          <div class="toolbar-sep"></div>
+          <div class="toolbar-group">
+            <button class="toolbar-btn" onclick="openLinkPopover('edit-body')" title="Chèn / Sửa liên kết">🔗</button>
+          </div>
+          <div class="toolbar-sep"></div>
+          <div class="toolbar-group">
+            <button class="toolbar-btn" onclick="fmtEdit('undo')" title="Hoàn tác">↩</button>
+            <button class="toolbar-btn" onclick="fmtEdit('redo')" title="Làm lại">↪</button>
+          </div>
+        </div>
+        <div class="editor-body" id="edit-body" contenteditable="true" style="min-height:200px" placeholder="Nhập nội dung..."></div>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Trạng thái</label>
+        <select class="form-select" id="edit-status">
+          <option value="draft">Nháp</option>
+          <option value="pending">Chờ duyệt</option>
+          <option value="published">Đã xuất bản</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">YouTube Video URL</label>
+        <input type="text" class="form-input" id="edit-video" placeholder="https://youtube.com/...">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-outline" onclick="closeEditModal()">Hủy</button>
+      <button class="btn-outline" style="border-color:#DC3545;color:#DC3545" onclick="confirmDeleteArticle()">🗑️ Xóa bài</button>
+      <button class="btn-primary" onclick="updateArticle()">💾 Lưu thay đổi</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== MODAL EDIT USER ========== -->
+<div class="modal-overlay" id="editUserModal">
+  <div class="modal">
+    <div class="modal-title">✏️ Chỉnh sửa người dùng</div>
+    <input type="hidden" id="edit-user-id">
+    <div class="form-group">
+      <label class="form-label">Họ và tên *</label>
+      <input type="text" class="form-input" id="edit-user-name">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Email *</label>
+      <input type="email" class="form-input" id="edit-user-email">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Vai trò</label>
+      <select class="form-select" id="edit-user-role">
+        <option>Viewer</option>
+        <option>Editor</option>
+        <option>Admin</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Bộ phận</label>
+      <input type="text" class="form-input" id="edit-user-dept">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-outline" onclick="closeEditUserModal()">Hủy</button>
+      <button class="btn-primary" onclick="updateUser()">💾 Lưu thay đổi</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== MODAL CONFIRM DELETE ARTICLE ========== -->
+<div class="modal-overlay" id="confirmDeleteModal">
+  <div class="modal" style="max-width:420px;text-align:center">
+    <div style="font-size:48px;margin-bottom:16px">🗑️</div>
+    <div class="modal-title" style="display:block">Xác nhận xóa bài viết</div>
+    <p style="font-size:14px;color:var(--text2);line-height:1.7;margin-bottom:8px">Bạn có chắc chắn muốn xóa bài viết:</p>
+    <p style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:10px;padding:10px 14px;background:var(--brand-pastel);border-radius:8px" id="confirm-delete-title"></p>
+    <p style="font-size:13px;color:#DC3545;">⚠️ Hành động này không thể hoàn tác!</p>
+    <div class="modal-actions" style="justify-content:center;margin-top:24px">
+      <button class="btn-outline" style="min-width:110px" onclick="closeConfirmDelete()">← Hủy bỏ</button>
+      <button class="btn-primary" style="min-width:130px;background:linear-gradient(135deg,#E57373,#C62828);box-shadow:0 2px 10px rgba(220,53,69,0.3)" onclick="doDeleteArticle()">🗑️ Xóa bài viết</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== MODAL CONFIRM DELETE USER ========== -->
+<div class="modal-overlay" id="confirmDeleteUserModal">
+  <div class="modal" style="max-width:420px;text-align:center">
+    <div style="font-size:48px;margin-bottom:16px">👤</div>
+    <div class="modal-title" style="display:block">Xác nhận xóa người dùng</div>
+    <p style="font-size:14px;color:var(--text2);line-height:1.7;margin-bottom:8px">Bạn có chắc chắn muốn xóa người dùng:</p>
+    <p style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:10px;padding:10px 14px;background:var(--brand-pastel);border-radius:8px" id="confirm-delete-user-name"></p>
+    <p style="font-size:13px;color:#DC3545;">⚠️ Hành động này không thể hoàn tác!</p>
+    <div class="modal-actions" style="justify-content:center;margin-top:24px">
+      <button class="btn-outline" style="min-width:110px" onclick="closeConfirmDeleteUser()">← Hủy bỏ</button>
+      <button class="btn-primary" style="min-width:130px;background:linear-gradient(135deg,#E57373,#C62828);box-shadow:0 2px 10px rgba(220,53,69,0.3)" onclick="doDeleteUser()">🗑️ Xóa người dùng</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ========== MODAL CONFIRM DELETE TC ========== -->
+<div class="modal-overlay" id="confirmDeleteTCModal">
+  <div class="modal" style="max-width:420px;text-align:center">
+    <div style="font-size:48px;margin-bottom:16px">🧪</div>
+    <div class="modal-title" style="display:block">Xác nhận xóa Test Case</div>
+    <p style="font-size:14px;color:var(--text2);line-height:1.7;margin-bottom:8px">Bạn có chắc chắn muốn xóa:</p>
+    <p style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:10px;padding:10px 14px;background:var(--brand-pastel);border-radius:8px" id="confirm-delete-tc-title"></p>
+    <p style="font-size:13px;color:#DC3545;">⚠️ Hành động này không thể hoàn tác!</p>
+    <div class="modal-actions" style="justify-content:center;margin-top:24px">
+      <button class="btn-outline" style="min-width:110px" onclick="document.getElementById('confirmDeleteTCModal').classList.remove('show')">← Hủy bỏ</button>
+      <button class="btn-primary" style="min-width:130px;background:linear-gradient(135deg,#E57373,#C62828)" onclick="doDeleteTC()">🗑️ Xóa</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ========== SHEET CONTEXT MENU ========== -->
+<div class="sheet-ctx-menu" id="sheetCtxMenu">
+  <div class="sheet-ctx-item" onclick="ctxInsertRowAbove()">⬆️ Chèn hàng phía trên</div>
+  <div class="sheet-ctx-item" onclick="ctxInsertRowBelow()">⬇️ Chèn hàng phía dưới</div>
+  <div class="sheet-ctx-sep"></div>
+  <div class="sheet-ctx-item" onclick="ctxDeleteRow()">🗑️ Xóa hàng này</div>
+  <div class="sheet-ctx-item" onclick="ctxDuplicateRow()">📋 Nhân đôi hàng</div>
+  <div class="sheet-ctx-sep"></div>
+  <div class="sheet-ctx-item" onclick="ctxInsertColRight()">➡️ Chèn cột bên phải</div>
+  <div class="sheet-ctx-item" onclick="ctxDeleteCol()">🗑️ Xóa cột này</div>
+  <div class="sheet-ctx-item" onclick="ctxRenameCol()">✏️ Đổi tên cột</div>
+  <div class="sheet-ctx-sep"></div>
+  <div class="sheet-ctx-item" onclick="ctxOpenDetail()">👁️ Xem chi tiết</div>
+  <div class="sheet-ctx-item" onclick="openTCDetail(ctxRowId)">📄 Mở Test Case</div>
+</div>
+
+<!-- ========== TOAST ========== -->
+<div class="toast" id="toast">✅ Thao tác thành công!</div>
+
+<script>
+// ─── DATA ───
+const ARTICLES = [
+  { id:1, title:"Hướng dẫn tạo workflow tự động trong Base Workflow", cat:"Base Workflow", tags:["workflow","automation","setup"], views:342, rating:97, status:"published", author:"Nguyễn QA Leader", date:"12/01/2025", icon:"⚡", body: `<h3>Giới thiệu</h3><p>Base Workflow là công cụ quản lý quy trình tự động hóa mạnh mẽ. Bài viết này hướng dẫn bạn tạo một workflow từ đầu.</p><h3>Các bước thực hiện</h3><ul><li>Bước 1: Đăng nhập vào Base Workflow và chọn <code>+ Tạo mới</code></li><li>Bước 2: Đặt tên cho workflow và chọn trigger (sự kiện khởi chạy)</li><li>Bước 3: Cấu hình các action (hành động) cần thực hiện</li><li>Bước 4: Test workflow với dữ liệu mẫu</li><li>Bước 5: Kích hoạt (Activate) workflow</li></ul><h3>Lưu ý quan trọng</h3><p>Luôn test workflow trong môi trường staging trước khi deploy lên production. Đảm bảo các trigger không bị chồng chéo gây loop vô hạn.</p>`, video:true },
+  { id:2, title:"Quy trình test Base Wework – Quản lý nhân sự", cat:"Base Wework", tags:["test","wework","HR"], views:285, rating:95, status:"published", author:"Trần Test QA", date:"08/01/2025", icon:"💼", body:`<h3>Phạm vi kiểm thử</h3><p>Bài viết mô tả quy trình test toàn diện cho module Quản lý nhân sự của Base Wework.</p><h3>Test Cases chính</h3><ul><li>TC-01: Thêm nhân viên mới với đầy đủ thông tin</li><li>TC-02: Phân quyền chức vụ và bộ phận</li><li>TC-03: Xuất báo cáo nhân sự theo tháng</li><li>TC-04: Kiểm tra tính năng check-in/check-out</li></ul><h3>Môi trường test</h3><p>Sử dụng staging environment tại <code>staging.wework.base.vn</code>. Tài khoản test: admin@test.com</p>`, video:false },
+  { id:3, title:"Cách tạo và quản lý Request phê duyệt trong Base Request", cat:"Base Request", tags:["request","approval","workflow"], views:198, rating:98, status:"published", author:"Lê QA Analyst", date:"05/01/2025", icon:"📋", body:`<h3>Tổng quan Base Request</h3><p>Base Request cho phép tạo các luồng phê duyệt tùy chỉnh cho từng loại yêu cầu nội bộ.</p><h3>Hướng dẫn tạo Request</h3><ul><li>Truy cập menu <code>Yêu cầu → Tạo mới</code></li><li>Chọn template phù hợp hoặc tạo form tùy chỉnh</li><li>Cấu hình người phê duyệt theo cấp bậc</li><li>Đặt SLA (thời gian xử lý tối đa)</li></ul>`, video:false },
+  { id:4, title:"Xử lý lỗi thường gặp khi sử dụng Base Workflow API", cat:"Base Workflow", tags:["API","error","debug"], views:167, rating:94, status:"published", author:"Nguyễn QA Leader", date:"02/01/2025", icon:"🔧", body:`<h3>Các lỗi phổ biến</h3><ul><li><code>401 Unauthorized</code>: Token hết hạn, cần refresh</li><li><code>429 Too Many Requests</code>: Vượt rate limit, chờ 60 giây</li><li><code>500 Internal Server Error</code>: Báo ngay cho team dev</li></ul>`, video:false },
+  { id:5, title:"Checklist kiểm thử tính năng mới Base Wework v3.2", cat:"Base Wework", tags:["checklist","v3.2","regression"], views:145, rating:100, status:"published", author:"Phạm QA Engineer", date:"20/12/2024", icon:"✅", body:`<h3>Checklist kiểm thử v3.2</h3><p>Phiên bản 3.2 có 12 tính năng mới cần kiểm thử hồi quy đầy đủ.</p><ul><li>✅ Module chấm công tự động</li><li>✅ Báo cáo OKR team</li><li>⬜ Tích hợp Slack notification</li><li>⬜ Dark mode UI</li></ul>`, video:false },
+  { id:6, title:"Hướng dẫn import dữ liệu hàng loạt vào Base Request", cat:"Base Request", tags:["import","bulk","excel"], views:123, rating:96, status:"draft", author:"Lê QA Analyst", date:"18/12/2024", icon:"📥", body:`<h3>Import hàng loạt</h3><p>Tính năng import hàng loạt cho phép tải lên tối đa 1000 records trong một lần thông qua file Excel.</p>`, video:false },
+  { id:7, title:"Thiết lập môi trường test cho dự án Base mới", cat:"Base Workflow", tags:["setup","environment","onboarding"], views:89, rating:93, status:"pending", author:"Trần Test QA", date:"15/12/2024", icon:"🛠️", body:`<h3>Thiết lập môi trường</h3><p>Hướng dẫn dành cho QA mới onboarding vào dự án Base.</p>`, video:false },
+  { id:8, title:"Quy trình báo cáo bug và theo dõi issue", cat:"Base Wework", tags:["bug","report","jira"], views:76, rating:99, status:"pending", author:"Phạm QA Engineer", date:"10/12/2024", icon:"🐛", body:`<h3>Quy trình báo cáo bug</h3><p>Mọi bug phải được tạo ticket trên Jira với đầy đủ thông tin: steps to reproduce, expected vs actual, severity.</p>`, video:false },
+  { id:9, title:"Test performance và load testing Base Request", cat:"Base Request", tags:["performance","load","k6"], views:54, rating:91, status:"pending", author:"Lê QA Analyst", date:"05/12/2024", icon:"⚡", body:`<h3>Load Testing với k6</h3><p>Sử dụng k6 để kiểm tra hiệu năng API Base Request dưới tải cao.</p>`, video:false },
+];
+
+const USERS = [
+  { id:1, name:"Nguyễn QA Leader", email:"leader@company.com", role:"Admin", dept:"QA Team", articles:12 },
+  { id:2, name:"Trần Test QA", email:"tran@company.com", role:"Editor", dept:"QA Team", articles:8 },
+  { id:3, name:"Lê QA Analyst", email:"le@company.com", role:"Editor", dept:"QA Team", articles:6 },
+  { id:4, name:"Phạm QA Engineer", email:"pham@company.com", role:"Editor", dept:"QA Team", articles:5 },
+  { id:5, name:"Nguyễn Dev", email:"dev1@company.com", role:"Viewer", dept:"Dev Team", articles:0 },
+  { id:6, name:"Trần Product", email:"pm@company.com", role:"Viewer", dept:"Product", articles:0 },
+];
+
+// ─── STATE ───
+let currentPage = 'home';
+let prevPage = 'home';
+let isDark = false;
+let tags = [];
+let articles = [...ARTICLES];
+let users = [...USERS];
+
+// ─── INIT ───
+window.onload = () => {
+  renderHotArticles();
+  renderNewArticles();
+  renderAllArticles();
+  renderPending();
+  renderUsers();
+  renderReports();
+  document.addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); document.getElementById('globalSearch').focus(); }
+  });
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.notif-panel') && !e.target.closest('.btn-icon')) {
+      document.getElementById('notifPanel').classList.remove('show');
+    }
+  });
+};
+
+// ─── NAVIGATION ───
+function navigate(page) {
+  prevPage = currentPage;
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  currentPage = page;
+  const navMap = { home:'home', articles:'articles', 'search-page':'search', editor:'editor', pending:'pending', reports:'reports', users:'users' };
+  document.querySelectorAll('.nav-item').forEach(n => {
+    if (n.textContent.trim().includes(navMap[page] === 'home' ? 'Trang chủ' : '')) n.classList.add('active');
+  });
+}
+function goBack() { navigate(prevPage); }
+
+function filterByProduct(prod) {
+  navigate('articles');
+  document.getElementById('filterCat').value = prod;
+  filterArticles(prod, 'cat');
+}
+
+// ─── RENDER ───
+function renderArticleCard(a, container, clickFn) {
+  const statusMap = { published:'published', draft:'draft', pending:'pending' };
+  const statusLabel = { published:'Đã xuất bản', draft:'Nháp', pending:'Chờ duyệt' };
+  const div = document.createElement('div');
+  div.className = 'article-card';
+  div.innerHTML = `
+    <div class="article-thumb" style="background:var(--brand-pastel)">${a.icon}</div>
+    <div class="article-info">
+      <div class="article-title">${a.title}</div>
+      <div class="article-meta">
+        <span>📁 ${a.cat}</span>
+        <span>👤 ${a.author}</span>
+        <span>📅 ${a.date}</span>
+        <span>👍 ${a.rating}%</span>
+      </div>
+      <div class="article-tags">${a.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+    </div>
+    <div class="article-right">
+      <div class="article-views">👁️ ${a.views.toLocaleString()}</div>
+      <span class="status-badge status-${statusMap[a.status]}">${statusLabel[a.status]}</span>
+    </div>`;
+  div.onclick = () => openArticle(a);
+  container.appendChild(div);
+}
+
+function renderHotArticles() {
+  const c = document.getElementById('hot-articles'); c.innerHTML = '';
+  [...articles].filter(a=>a.status==='published').sort((a,b)=>b.views-a.views).slice(0,3).forEach(a=>renderArticleCard(a,c));
+}
+function renderNewArticles() {
+  const c = document.getElementById('new-articles'); c.innerHTML = '';
+  [...articles].filter(a=>a.status==='published').slice(0,3).forEach(a=>renderArticleCard(a,c));
+}
+
+function renderAllArticles(filtered) {
+  const c = document.getElementById('all-articles-list'); c.innerHTML = '';
+  const list = filtered || articles;
+  if (!list.length) { c.innerHTML = '<div style="padding:30px;text-align:center;color:var(--text3)">Không tìm thấy bài viết nào</div>'; return; }
+  const statusLabel = { published:'Đã xuất bản', draft:'Nháp', pending:'Chờ duyệt' };
+  list.forEach(a => {
+    const row = document.createElement('div');
+    row.className = 'table-row';
+    row.innerHTML = `
+      <div class="col-title"><b>${a.icon}</b> ${a.title}</div>
+      <div class="col-cat">${a.cat}</div>
+      <div class="col-views">${a.views}</div>
+      <div class="col-rate">${a.rating}%</div>
+      <div class="col-status"><span class="status-badge status-${a.status}">${statusLabel[a.status]}</span></div>
+      <div class="col-actions" style="display:flex;gap:6px;justify-content:flex-end">
+        <div class="btn-icon" style="width:28px;height:28px;font-size:13px" title="Chỉnh sửa" onclick="event.stopPropagation();openEditArticle(${a.id})">✏️</div>
+        <div class="btn-icon" style="width:28px;height:28px;font-size:13px" title="Xóa" onclick="event.stopPropagation();askDeleteArticle(${a.id})">🗑️</div>
+      </div>`;
+    row.onclick = () => openArticle(a);
+    c.appendChild(row);
+  });
+}
+
+function filterArticles(val, type) {
+  let list = [...articles];
+  const cat = document.getElementById('filterCat').value;
+  const status = document.getElementById('filterStatus').value;
+  if (type === 'cat') { if (val) list = list.filter(a=>a.cat===val); if (status) list = list.filter(a=>a.status===status); }
+  if (type === 'status') { if (val) list = list.filter(a=>a.status===val); if (cat) list = list.filter(a=>a.cat===cat); }
+  renderAllArticles(list);
+}
+
+let pendingDeleteArticleId = null;
+function askDeleteArticle(id) {
+  const a = articles.find(x => x.id === id);
+  if (!a) return;
+  pendingDeleteArticleId = id;
+  document.getElementById('confirm-delete-title').textContent = a.title;
+  document.getElementById('confirmDeleteModal').classList.add('show');
+}
+function doDeleteArticle() {
+  articles = articles.filter(a => a.id !== pendingDeleteArticleId);
+  pendingDeleteArticleId = null;
+  closeConfirmDelete();
+  renderAllArticles(); renderHotArticles(); renderNewArticles(); renderPending();
+  showToast('🗑️ Đã xóa bài viết thành công!');
+}
+function closeConfirmDelete() { document.getElementById('confirmDeleteModal').classList.remove('show'); }
+document.getElementById('confirmDeleteModal').addEventListener('click', function(e) { if (e.target === this) closeConfirmDelete(); });
+
+function renderPending() {
+  const c = document.getElementById('pending-list'); c.innerHTML = '';
+  articles.filter(a=>a.status==='pending').forEach(a => {
+    const row = document.createElement('div');
+    row.className = 'table-row';
+    row.innerHTML = `
+      <div class="col-title">${a.icon} ${a.title}</div>
+      <div class="col-cat">${a.cat}</div>
+      <div class="col-views">${a.date}</div>
+      <div class="col-status"><span class="status-badge status-pending">Chờ duyệt</span></div>
+      <div class="col-actions" style="width:160px;display:flex;gap:6px;justify-content:flex-end">
+        <button class="btn-primary" style="height:28px;font-size:11px;padding:0 10px" onclick="approveArticle(${a.id})">✅ Duyệt</button>
+        <button class="btn-outline" style="height:28px;font-size:11px;padding:0 10px" onclick="rejectArticle(${a.id})">❌ Từ chối</button>
+      </div>`;
+    c.appendChild(row);
+  });
+  if (!articles.filter(a=>a.status==='pending').length) c.innerHTML = '<div style="padding:30px;text-align:center;color:var(--text3)">✨ Không có bài viết nào đang chờ duyệt</div>';
+}
+
+function approveArticle(id) {
+  const a = articles.find(x=>x.id===id);
+  if (a) { a.status = 'published'; renderPending(); renderAllArticles(); showToast('✅ Đã duyệt và xuất bản bài viết!'); }
+}
+function rejectArticle(id) {
+  const a = articles.find(x=>x.id===id);
+  if (a) { a.status = 'draft'; renderPending(); renderAllArticles(); showToast('❌ Đã từ chối, bài viết trả về nháp'); }
+}
+
+function renderUsers() {
+  const c = document.getElementById('users-table'); c.innerHTML = '';
+  const roleColor = { Admin:'var(--brand)', Editor:'var(--accent)', Viewer:'var(--text3)' };
+  let html = `<div class="table-head">
+    <div class="col-title th">Họ và tên</div>
+    <div class="col-cat th">Email</div>
+    <div class="col-cat th">Bộ phận</div>
+    <div class="col-views th">Bài viết</div>
+    <div class="col-status th">Vai trò</div>
+    <div class="col-actions th">Thao tác</div>
+  </div>`;
+  users.forEach(u => {
+    html += `<div class="table-row">
+      <div class="col-title" style="display:flex;align-items:center;gap:10px">
+        <div class="user-avatar" style="width:30px;height:30px;font-size:11px">${u.name.split(' ').pop()[0]}</div>
+        <span>${u.name}</span>
+      </div>
+      <div class="col-cat">${u.email}</div>
+      <div class="col-cat">${u.dept}</div>
+      <div class="col-views">${u.articles}</div>
+      <div class="col-status"><b style="color:${roleColor[u.role]}">${u.role}</b></div>
+      <div class="col-actions" style="display:flex;gap:4px;justify-content:flex-end">
+        <div class="btn-icon" style="width:28px;height:28px;font-size:12px" title="Sửa" onclick="openEditUser(${u.id})">✏️</div>
+        <div class="btn-icon" style="width:28px;height:28px;font-size:12px" title="Xóa" onclick="askDeleteUser(${u.id})">🗑️</div>
+      </div>
+    </div>`;
+  });
+  c.innerHTML = html;
+}
+
+let pendingDeleteUserId = null;
+function askDeleteUser(id) {
+  const u = users.find(x => x.id === id);
+  if (!u) return;
+  pendingDeleteUserId = id;
+  document.getElementById('confirm-delete-user-name').textContent = u.name + ' (' + u.email + ')';
+  document.getElementById('confirmDeleteUserModal').classList.add('show');
+}
+function doDeleteUser() {
+  users = users.filter(u => u.id !== pendingDeleteUserId);
+  pendingDeleteUserId = null;
+  closeConfirmDeleteUser();
+  renderUsers();
+  showToast('🗑️ Đã xóa người dùng thành công!');
+}
+function closeConfirmDeleteUser() { document.getElementById('confirmDeleteUserModal').classList.remove('show'); }
+document.getElementById('confirmDeleteUserModal').addEventListener('click', function(e) { if (e.target === this) closeConfirmDeleteUser(); });
+
+function renderReports() {
+  // Top views
+  const topViews = [...articles].sort((a,b)=>b.views-a.views).slice(0,5);
+  const maxV = topViews[0]?.views || 1;
+  document.getElementById('top-views-chart').innerHTML = topViews.map(a=>`
+    <div class="chart-bar-item">
+      <div class="chart-bar-label">${a.icon} ${a.title.substring(0,28)}…</div>
+      <div class="chart-bar-track"><div class="chart-bar-fill" style="width:${(a.views/maxV*100).toFixed(0)}%"></div></div>
+      <div class="chart-bar-val">${a.views}</div>
+    </div>`).join('');
+
+  // Top searches
+  const searches = [["Base Workflow",340],["test case",280],["bug report",210],["API error",175],["import excel",140]];
+  document.getElementById('top-search-chart').innerHTML = searches.map(([k,v])=>`
+    <div class="chart-bar-item">
+      <div class="chart-bar-label">🔍 ${k}</div>
+      <div class="chart-bar-track"><div class="chart-bar-fill" style="width:${(v/340*100).toFixed(0)}%"></div></div>
+      <div class="chart-bar-val">${v}</div>
+    </div>`).join('');
+
+  drawLineChart();
+}
+
+function drawLineChart() {
+  const canvas = document.getElementById('lineChart');
+  const ctx = canvas.getContext('2d');
+  canvas.width = canvas.parentElement.offsetWidth - 40;
+  canvas.height = 90;
+  const data = [78,95,112,88,134,145,163];
+  const labels = ['T2','T3','T4','T5','T6','T7','CN'];
+  const max = Math.max(...data);
+  const W = canvas.width, H = canvas.height;
+  const padL = 30, padB = 20, padT = 10;
+  const chartW = W - padL - 10;
+  const chartH = H - padB - padT;
+  ctx.clearRect(0,0,W,H);
+  // grid
+  for (let i=0;i<=4;i++) {
+    const y = padT + chartH - (chartH*i/4);
+    ctx.strokeStyle = isDark ? '#243A52' : '#E8F2FB';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(padL,y); ctx.lineTo(W-10,y); ctx.stroke();
+  }
+  // line
+  const pts = data.map((v,i) => ({ x: padL + (i/(data.length-1))*chartW, y: padT + chartH - (v/max)*chartH }));
+  // gradient fill
+  const grad = ctx.createLinearGradient(0, padT, 0, H);
+  grad.addColorStop(0, 'rgba(91,155,213,0.25)');
+  grad.addColorStop(1, 'rgba(91,155,213,0)');
+  ctx.beginPath();
+  ctx.moveTo(pts[0].x, H-padB);
+  pts.forEach(p => ctx.lineTo(p.x, p.y));
+  ctx.lineTo(pts[pts.length-1].x, H-padB);
+  ctx.closePath();
+  ctx.fillStyle = grad;
+  ctx.fill();
+  // stroke
+  ctx.beginPath();
+  ctx.strokeStyle = '#5B9BD5';
+  ctx.lineWidth = 2.5;
+  ctx.lineJoin = 'round';
+  ctx.lineCap = 'round';
+  pts.forEach((p,i) => i===0 ? ctx.moveTo(p.x,p.y) : ctx.lineTo(p.x,p.y));
+  ctx.stroke();
+  // dots & labels
+  const textColor = isDark ? '#8BAEC8' : '#8BA5BA';
+  pts.forEach((p,i) => {
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 4, 0, Math.PI*2);
+    ctx.fillStyle = '#5B9BD5';
+    ctx.fill();
+    ctx.strokeStyle = isDark ? '#162333' : '#fff';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.fillStyle = textColor;
+    ctx.font = '10px Be Vietnam Pro, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(labels[i], p.x, H-4);
+    ctx.fillStyle = '#5B9BD5';
+    ctx.font = '9px Be Vietnam Pro, sans-serif';
+    ctx.fillText(data[i], p.x, p.y-7);
+  });
+}
+
+// ─── ARTICLE DETAIL ───
+function openArticle(a) {
+  a.views++;
+  document.getElementById('detail-title').textContent = a.title;
+  document.getElementById('detail-meta').innerHTML = `
+    <span>📁 ${a.cat}</span><span>👤 ${a.author}</span><span>📅 ${a.date}</span>
+    <span>👁️ ${a.views} lượt xem</span><span>👍 ${a.rating}% hài lòng</span>`;
+  document.getElementById('detail-tags').innerHTML = a.tags.map(t=>`<span class="tag">${t}</span>`).join('');
+  document.getElementById('detail-body').innerHTML = a.body;
+  const vEl = document.getElementById('detail-video');
+  vEl.style.display = a.video ? 'block' : 'none';
+  document.getElementById('feedback-msg').style.display = 'none';
+  document.querySelectorAll('.feedback-btn').forEach(b=>b.classList.remove('active'));
+  navigate('detail');
+}
+
+function giveFeedback(type, btn) {
+  document.querySelectorAll('.feedback-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const msg = document.getElementById('feedback-msg');
+  msg.style.display = 'block';
+  msg.textContent = type==='yes' ? '🙏 Cảm ơn bạn đã đánh giá! Phản hồi của bạn giúp chúng tôi cải thiện nội dung.' : '😢 Cảm ơn đã phản hồi! Chúng tôi sẽ cập nhật bài viết sớm nhất có thể.';
+}
+
+// ─── SEARCH ───
+const allKeywords = ['Base Workflow', 'workflow tự động', 'test case', 'bug report', 'API error', 'import excel', 'load testing', 'checklist', 'môi trường test', 'Base Wework', 'Base Request', 'approval', 'onboarding'];
+
+function handleSearch(val) {
+  const box = document.getElementById('autoBox');
+  if (!val.trim()) { box.classList.remove('show'); return; }
+  const filtered = articles.filter(a => a.title.toLowerCase().includes(val.toLowerCase()) || a.tags.some(t=>t.includes(val.toLowerCase())));
+  if (!filtered.length) { box.classList.remove('show'); return; }
+  box.innerHTML = filtered.slice(0,5).map(a=>`
+    <div class="auto-item" onmousedown="openArticle(articles.find(x=>x.id==${a.id}))">
+      <span>${a.icon}</span>
+      <span>${highlight(a.title, val)}</span>
+      <span class="auto-cat">${a.cat}</span>
+    </div>`).join('');
+  box.classList.add('show');
+}
+
+function showAuto() { if (document.getElementById('globalSearch').value.trim()) handleSearch(document.getElementById('globalSearch').value); }
+function hideAuto() { setTimeout(()=>document.getElementById('autoBox').classList.remove('show'), 200); }
+
+function highlight(text, query) {
+  if (!query) return text;
+  const re = new RegExp(`(${query})`, 'gi');
+  return text.replace(re, `<span class="search-result-tag">$1</span>`);
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && document.activeElement.id === 'globalSearch') {
+    const val = document.getElementById('globalSearch').value.trim();
+    if (!val) return;
+    document.getElementById('autoBox').classList.remove('show');
+    const results = articles.filter(a =>
+      a.title.toLowerCase().includes(val.toLowerCase()) ||
+      a.body.toLowerCase().includes(val.toLowerCase()) ||
+      a.tags.some(t=>t.includes(val.toLowerCase())) ||
+      a.cat.toLowerCase().includes(val.toLowerCase())
+    );
+    document.getElementById('search-keyword-label').textContent = `"${val}"`;
+    const c = document.getElementById('search-results-list'); c.innerHTML = '';
+    if (!results.length) { c.innerHTML = `<div style="padding:40px;text-align:center;color:var(--text3)">🔍 Không tìm thấy kết quả nào cho "${val}"</div>`; }
+    else results.forEach(a=>renderArticleCard(a,c));
+    navigate('search-page');
+  }
+});
+
+// ─── EDITOR ───
+// ─── UNIFIED EDITOR HELPERS ───
+function fmtDoc(cmd, val) {
+  document.execCommand(cmd, false, val || null);
+}
+function fmt(cmd, val) {
+  document.getElementById('ed-body').focus();
+  document.execCommand(cmd, false, val || null);
+}
+function fmtBlock(targetId, tag) {
+  if (!tag) return;
+  document.getElementById(targetId).focus();
+  if (tag === 'pre' || tag === 'blockquote') {
+    document.execCommand('formatBlock', false, tag);
+  } else {
+    document.execCommand('formatBlock', false, tag);
+  }
+}
+function insertCheckbox(targetId) {
+  document.getElementById(targetId).focus();
+  document.execCommand('insertHTML', false,
+    '<div style="display:flex;align-items:center;gap:8px;margin:4px 0"><input type="checkbox" style="width:16px;height:16px;accent-color:var(--brand)"><span>Nội dung checkbox</span></div>');
+}
+function insertCodeBlock(targetId) {
+  document.getElementById(targetId).focus();
+  document.execCommand('insertHTML', false,
+    '<pre style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px 18px;font-family:JetBrains Mono,monospace;font-size:13px;margin:12px 0">// Nhập code tại đây</pre><p><br></p>');
+}
+function insertCallout(targetId) {
+  document.getElementById(targetId).focus();
+  document.execCommand('insertHTML', false,
+    '<div style="background:var(--brand-pastel,#EBF4FB);border:1px solid var(--brand-light,#A8CCEE);border-radius:8px;padding:12px 16px;margin:12px 0;display:flex;gap:10px">💡 <span>Nhập nội dung callout...</span></div><p><br></p>');
+}
+function insertDivider(targetId) {
+  document.getElementById(targetId).focus();
+  document.execCommand('insertHTML', false, '<hr style="border:none;border-top:2px solid var(--border,#D0E6F5);margin:20px 0"><p><br></p>');
+}
+function insertTable(targetId) {
+  document.getElementById(targetId).focus();
+  const tbl = `<table style="border-collapse:collapse;width:100%;margin:14px 0">
+    <tr><th style="border:1px solid var(--border,#D0E6F5);padding:8px 12px;background:var(--surface2,#EBF4FB);font-weight:700">Cột 1</th><th style="border:1px solid var(--border,#D0E6F5);padding:8px 12px;background:var(--surface2,#EBF4FB);font-weight:700">Cột 2</th><th style="border:1px solid var(--border,#D0E6F5);padding:8px 12px;background:var(--surface2,#EBF4FB);font-weight:700">Cột 3</th></tr>
+    <tr><td style="border:1px solid var(--border,#D0E6F5);padding:8px 12px">Nội dung</td><td style="border:1px solid var(--border,#D0E6F5);padding:8px 12px">Nội dung</td><td style="border:1px solid var(--border,#D0E6F5);padding:8px 12px">Nội dung</td></tr>
+    <tr><td style="border:1px solid var(--border,#D0E6F5);padding:8px 12px">Nội dung</td><td style="border:1px solid var(--border,#D0E6F5);padding:8px 12px">Nội dung</td><td style="border:1px solid var(--border,#D0E6F5);padding:8px 12px">Nội dung</td></tr>
+  </table><p><br></p>`;
+  document.execCommand('insertHTML', false, tbl);
+}
+function insertCode() { insertCodeBlock('ed-body'); }
+function insertLink() { openLinkPopover('ed-body'); }
+
+// ─── LINK POPOVER ───
+let linkTargetEditorId = 'ed-body';
+let savedRange = null;
+
+function openLinkPopover(editorId) {
+  linkTargetEditorId = editorId;
+  const editor = document.getElementById(editorId);
+  editor.focus();
+
+  // Save selection
+  const sel = window.getSelection();
+  if (sel.rangeCount) savedRange = sel.getRangeAt(0).cloneRange();
+
+  // Pre-fill if selection is inside a link
+  let existingUrl = '';
+  let existingText = sel.toString();
+  const anchor = sel.anchorNode && sel.anchorNode.parentElement &&
+    sel.anchorNode.parentElement.closest('a');
+  if (anchor) {
+    existingUrl = anchor.href;
+    existingText = anchor.textContent;
+  }
+
+  document.getElementById('link-url-input').value = existingUrl;
+  document.getElementById('link-text-input').value = existingText;
+
+  // Position popover near toolbar
+  const toolbar = editor.previousElementSibling;
+  const rect = toolbar ? toolbar.getBoundingClientRect() : editor.getBoundingClientRect();
+  const pop = document.getElementById('linkPopover');
+  pop.style.top = (rect.bottom + 6 + window.scrollY) + 'px';
+  const left = Math.min(rect.left, window.innerWidth - 360);
+  pop.style.left = Math.max(8, left) + 'px';
+  pop.classList.add('show');
+  setTimeout(() => document.getElementById('link-url-input').focus(), 80);
+}
+
+function applyLink() {
+  const url = document.getElementById('link-url-input').value.trim();
+  const text = document.getElementById('link-text-input').value.trim();
+  if (!url) { document.getElementById('link-url-input').focus(); return; }
+
+  const editor = document.getElementById(linkTargetEditorId);
+  editor.focus();
+
+  // Restore saved selection
+  if (savedRange) {
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(savedRange);
+  }
+
+  const sel = window.getSelection();
+  const existingAnchor = sel.anchorNode &&
+    sel.anchorNode.parentElement &&
+    sel.anchorNode.parentElement.closest('a');
+
+  if (existingAnchor) {
+    // Edit existing link
+    existingAnchor.href = url;
+    if (text) existingAnchor.textContent = text;
+  } else {
+    // Insert new link
+    if (text && (!sel.toString() || sel.toString() !== text)) {
+      // Insert with custom text
+      document.execCommand('insertHTML', false,
+        `<a href="${url}" target="_blank" style="color:var(--brand);text-decoration:underline">${text}</a>`);
+    } else {
+      document.execCommand('createLink', false, url);
+      // Make it open in new tab
+      const newAnchor = sel.anchorNode && sel.anchorNode.parentElement &&
+        sel.anchorNode.parentElement.closest('a');
+      if (newAnchor) { newAnchor.target = '_blank'; newAnchor.style.cssText = 'color:var(--brand);text-decoration:underline'; }
+    }
+  }
+  closeLinkPopover();
+  showToast('🔗 Đã chèn liên kết!');
+}
+
+function closeLinkPopover() {
+  document.getElementById('linkPopover').classList.remove('show');
+  document.getElementById('link-url-input').value = '';
+  document.getElementById('link-text-input').value = '';
+  savedRange = null;
+}
+
+// Click outside to close popover
+document.addEventListener('click', function(e) {
+  const pop = document.getElementById('linkPopover');
+  if (pop.classList.contains('show') && !pop.contains(e.target) && !e.target.closest('.toolbar-btn')) {
+    closeLinkPopover();
+  }
+});
+
+// ─── LINK PREVIEW BAR (hover on links inside editor) ───
+document.addEventListener('mouseover', function(e) {
+  const link = e.target.closest('.editor-body a');
+  if (!link) return;
+  const bar = document.getElementById('linkPreviewBar');
+  const href = link.href;
+  const previewA = document.getElementById('link-preview-href');
+  previewA.href = href;
+  previewA.textContent = href.length > 50 ? href.substring(0, 50) + '...' : href;
+
+  // Store ref for edit/remove
+  bar._currentLink = link;
+  bar._editorId = link.closest('.editor-body')?.id || 'ed-body';
+
+  const rect = link.getBoundingClientRect();
+  bar.style.top = (rect.bottom + 6 + window.scrollY) + 'px';
+  bar.style.left = Math.max(8, rect.left) + 'px';
+  bar.classList.add('show');
+});
+
+document.addEventListener('mouseout', function(e) {
+  const bar = document.getElementById('linkPreviewBar');
+  if (!e.relatedTarget || (!e.relatedTarget.closest('.link-preview-bar') && !e.relatedTarget.closest('.editor-body a'))) {
+    bar.classList.remove('show');
+  }
+});
+
+function editLinkFromPreview() {
+  const bar = document.getElementById('linkPreviewBar');
+  bar.classList.remove('show');
+  const link = bar._currentLink;
+  if (!link) return;
+  // Select the link text
+  const edId = bar._editorId;
+  const range = document.createRange();
+  range.selectNode(link);
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
+  savedRange = range.cloneRange();
+  openLinkPopover(edId);
+}
+
+function removeLinkFromPreview() {
+  const bar = document.getElementById('linkPreviewBar');
+  bar.classList.remove('show');
+  const link = bar._currentLink;
+  if (!link) return;
+  // Unwrap the <a> tag, keep text
+  const parent = link.parentNode;
+  while (link.firstChild) parent.insertBefore(link.firstChild, link);
+  parent.removeChild(link);
+  showToast('🗑️ Đã xóa liên kết');
+}
+
+function addTag(e) {
+  if (e.key === 'Enter' || e.key === ',') {
+    e.preventDefault();
+    const val = document.getElementById('tagInput').value.trim().replace(/,/g,'');
+    if (!val || tags.includes(val)) return;
+    tags.push(val);
+    const span = document.createElement('span');
+    span.className = 'tag-item';
+    span.innerHTML = `${val} <span class="tag-remove" onclick="removeTag('${val}',this)">×</span>`;
+    document.getElementById('tagsWrap').insertBefore(span, document.getElementById('tagInput'));
+    document.getElementById('tagInput').value = '';
+  }
+}
+function removeTag(val, el) {
+  tags = tags.filter(t=>t!==val);
+  el.parentElement.remove();
+}
+
+function saveArticle(status) {
+  const title = document.getElementById('ed-title').value.trim();
+  const cat = document.getElementById('ed-cat').value;
+  const body = document.getElementById('ed-body').innerHTML.trim();
+  if (!title || !cat || !body) { showToast('⚠️ Vui lòng điền đủ tiêu đề, danh mục và nội dung!'); return; }
+  const newArt = {
+    id: Date.now(), title, cat, tags:[...tags], views:0, rating:0, status,
+    author:'Tester Leader', date: new Date().toLocaleDateString('vi-VN'),
+    icon:'📝', body, video:!!document.getElementById('ed-video').value
+  };
+  articles.unshift(newArt);
+  renderAllArticles(); renderHotArticles(); renderNewArticles(); renderPending();
+  const msgs = { draft:'💾 Đã lưu nháp thành công!', pending:'📤 Đã submit để duyệt!', published:'🚀 Đã xuất bản bài viết!' };
+  showToast(msgs[status]);
+  // reset
+  document.getElementById('ed-title').value = '';
+  document.getElementById('ed-cat').value = '';
+  document.getElementById('ed-body').innerHTML = '';
+  document.getElementById('ed-video').value = '';
+  tags = []; document.querySelectorAll('.tag-item').forEach(t=>t.remove());
+  if (status !== 'draft') navigate('articles');
+}
+
+// ─── USERS ───
+function openAddUser() { document.getElementById('addUserModal').classList.add('show'); }
+function closeModal() { document.getElementById('addUserModal').classList.remove('show'); }
+function addUser() {
+  const name = document.getElementById('new-user-name').value.trim();
+  const email = document.getElementById('new-user-email').value.trim();
+  const role = document.getElementById('new-user-role').value;
+  const dept = document.getElementById('new-user-dept').value.trim();
+  if (!name || !email) { showToast('⚠️ Vui lòng nhập đầy đủ thông tin!'); return; }
+  users.push({ id: Date.now(), name, email, role, dept, articles:0 });
+  renderUsers(); closeModal(); showToast('✅ Đã thêm người dùng mới!');
+  document.getElementById('new-user-name').value = '';
+  document.getElementById('new-user-email').value = '';
+  document.getElementById('new-user-dept').value = '';
+}
+
+// ─── THEME ───
+function toggleTheme() {
+  isDark = !isDark;
+  document.documentElement.setAttribute('data-theme', isDark ? 'dark' : '');
+  document.getElementById('themeBtn').textContent = isDark ? '☀️' : '🌙';
+  setTimeout(drawLineChart, 100);
+}
+
+// ─── NOTIFICATIONS ───
+function toggleNotif() { document.getElementById('notifPanel').classList.toggle('show'); }
+
+// ─── TOAST ───
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 3000);
+}
+
+// ─── EDIT ARTICLE ───
+let editTags = [];
+
+function openEditArticle(id) {
+  const a = articles.find(x => x.id === id);
+  if (!a) return;
+  document.getElementById('edit-article-id').value = id;
+  document.getElementById('edit-title').value = a.title;
+  document.getElementById('edit-cat').value = a.cat;
+  document.getElementById('edit-body').innerHTML = a.body;
+  document.getElementById('edit-status').value = a.status;
+  document.getElementById('edit-video').value = '';
+
+  // Reset tags
+  editTags = [...a.tags];
+  const wrap = document.getElementById('editTagsWrap');
+  wrap.querySelectorAll('.tag-item').forEach(t => t.remove());
+  editTags.forEach(t => {
+    const span = document.createElement('span');
+    span.className = 'tag-item';
+    span.innerHTML = `${t} <span class="tag-remove" onclick="removeEditTag('${t}',this)">×</span>`;
+    wrap.insertBefore(span, document.getElementById('editTagInput'));
+  });
+
+  document.getElementById('editArticleModal').classList.add('show');
+}
+
+function addEditTag(e) {
+  if (e.key === 'Enter' || e.key === ',') {
+    e.preventDefault();
+    const val = document.getElementById('editTagInput').value.trim().replace(/,/g, '');
+    if (!val || editTags.includes(val)) return;
+    editTags.push(val);
+    const span = document.createElement('span');
+    span.className = 'tag-item';
+    span.innerHTML = `${val} <span class="tag-remove" onclick="removeEditTag('${val}',this)">×</span>`;
+    document.getElementById('editTagsWrap').insertBefore(span, document.getElementById('editTagInput'));
+    document.getElementById('editTagInput').value = '';
+  }
+}
+function removeEditTag(val, el) { editTags = editTags.filter(t => t !== val); el.parentElement.remove(); }
+function fmtEdit(cmd, val) {
+  document.getElementById('edit-body').focus();
+  document.execCommand(cmd, false, val || null);
+}
+
+function updateArticle() {
+  const id = parseInt(document.getElementById('edit-article-id').value);
+  const title = document.getElementById('edit-title').value.trim();
+  const cat = document.getElementById('edit-cat').value;
+  const body = document.getElementById('edit-body').innerHTML.trim();
+  const status = document.getElementById('edit-status').value;
+  if (!title || !cat || !body) { showToast('⚠️ Vui lòng điền đủ tiêu đề, danh mục và nội dung!'); return; }
+  const a = articles.find(x => x.id === id);
+  if (a) {
+    a.title = title; a.cat = cat; a.body = body;
+    a.status = status; a.tags = [...editTags];
+    a.date = new Date().toLocaleDateString('vi-VN');
+  }
+  closeEditModal();
+  renderAllArticles(); renderHotArticles(); renderNewArticles(); renderPending();
+  showToast('✅ Đã cập nhật bài viết thành công!');
+}
+
+function confirmDeleteArticle() {
+  const id = parseInt(document.getElementById('edit-article-id').value);
+  closeEditModal();
+  askDeleteArticle(id);
+}
+
+function closeEditModal() { document.getElementById('editArticleModal').classList.remove('show'); }
+document.getElementById('editArticleModal').addEventListener('click', function(e) { if (e.target === this) closeEditModal(); });
+
+// ─── EDIT USER ───
+function openEditUser(id) {
+  const u = users.find(x => x.id === id);
+  if (!u) return;
+  document.getElementById('edit-user-id').value = id;
+  document.getElementById('edit-user-name').value = u.name;
+  document.getElementById('edit-user-email').value = u.email;
+  document.getElementById('edit-user-role').value = u.role;
+  document.getElementById('edit-user-dept').value = u.dept;
+  document.getElementById('editUserModal').classList.add('show');
+}
+
+function updateUser() {
+  const id = parseInt(document.getElementById('edit-user-id').value);
+  const name = document.getElementById('edit-user-name').value.trim();
+  const email = document.getElementById('edit-user-email').value.trim();
+  if (!name || !email) { showToast('⚠️ Vui lòng nhập đầy đủ thông tin!'); return; }
+  const u = users.find(x => x.id === id);
+  if (u) {
+    u.name = name; u.email = email;
+    u.role = document.getElementById('edit-user-role').value;
+    u.dept = document.getElementById('edit-user-dept').value.trim();
+  }
+  closeEditUserModal();
+  renderUsers();
+  showToast('✅ Đã cập nhật thông tin người dùng!');
+}
+
+function closeEditUserModal() { document.getElementById('editUserModal').classList.remove('show'); }
+document.getElementById('editUserModal').addEventListener('click', function(e) { if (e.target === this) closeEditUserModal(); });
+
+// ─── MODAL CLOSE ───
+document.getElementById('addUserModal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+// ════════════════════════════════════════
+// ─── TEST CASE MODULE ───
+// ════════════════════════════════════════
+
+const TC_FEATURES = {
+  'Base Workflow': ['Tạo Workflow', 'Cấu hình Trigger', 'Quản lý Action', 'Workflow API', 'Phân quyền'],
+  'Base Wework':   ['Quản lý nhân sự', 'Chấm công', 'OKR & KPI', 'Báo cáo HR', 'Phân quyền'],
+  'Base Request':  ['Tạo Request', 'Phê duyệt', 'Template', 'Import/Export', 'Thông báo'],
+};
+
+let TEST_CASES = [
+  { id:'TC-001', name:'Tạo workflow tự động với trigger "Tạo task mới"', app:'Base Workflow', feature:'Tạo Workflow', type:'Functional', priority:'high', precond:'Đăng nhập Admin, chưa có workflow nào', author:'Nguyễn QA Leader', assignee:'Trần Test QA', status:'pass', actualNote:'Thực hiện đúng, workflow kích hoạt sau 2s', date:'15/01/2025',
+    steps:[
+      {action:'Vào menu Workflow → click "+ Tạo mới"', expected:'Hiển thị form tạo workflow'},
+      {action:'Nhập tên workflow "Auto Task Notify", chọn trigger "Tạo task mới"', expected:'Trigger được chọn, hiện cấu hình conditions'},
+      {action:'Thêm action: Gửi email đến người được giao task', expected:'Action được thêm vào danh sách'},
+      {action:'Click "Lưu & Kích hoạt"', expected:'Workflow active, trạng thái "Đang chạy"'},
+      {action:'Tạo 1 task mới trong hệ thống', expected:'Email được gửi đến người nhận trong vòng 30 giây'},
+    ]},
+  { id:'TC-002', name:'Kiểm tra đăng nhập khi sai mật khẩu 5 lần liên tiếp', app:'Base Wework', feature:'Phân quyền', type:'Security', priority:'high', precond:'Tài khoản test đang hoạt động bình thường', author:'Lê QA Analyst', assignee:'Lê QA Analyst', status:'pass', actualNote:'Khoá tài khoản đúng sau 5 lần sai', date:'14/01/2025',
+    steps:[
+      {action:'Nhập đúng email, sai mật khẩu → click Đăng nhập', expected:'Thông báo lỗi "Sai mật khẩu" (lần 1)'},
+      {action:'Lặp lại 4 lần nữa với mật khẩu sai', expected:'Hệ thống đếm số lần sai, hiện cảnh báo còn X lần'},
+      {action:'Thử đăng nhập lần thứ 6', expected:'Tài khoản bị khoá, hiện thông báo "Liên hệ Admin"'},
+    ]},
+  { id:'TC-003', name:'Phê duyệt Request nhiều cấp theo thứ tự', app:'Base Request', feature:'Phê duyệt', type:'Functional', priority:'high', precond:'Có Request template với 3 cấp phê duyệt đã cấu hình', author:'Trần Test QA', assignee:'Phạm QA Engineer', status:'fail', actualNote:'Lỗi: cấp 2 không nhận được notification khi cấp 1 duyệt xong', date:'13/01/2025',
+    steps:[
+      {action:'Tạo Request mới từ template "Đề xuất chi phí"', expected:'Request ở trạng thái "Chờ duyệt cấp 1"'},
+      {action:'Đăng nhập người duyệt cấp 1, phê duyệt Request', expected:'Request chuyển sang "Chờ duyệt cấp 2", cấp 2 nhận notification'},
+      {action:'Đăng nhập người duyệt cấp 2, phê duyệt', expected:'Request chuyển "Chờ duyệt cấp 3"'},
+      {action:'Cấp 3 phê duyệt', expected:'Request "Đã duyệt", người tạo nhận thông báo hoàn thành'},
+    ]},
+  { id:'TC-004', name:'Import hàng loạt 500 nhân viên từ file Excel', app:'Base Wework', feature:'Quản lý nhân sự', type:'Functional', priority:'medium', precond:'File Excel mẫu 500 rows đúng format', author:'Phạm QA Engineer', assignee:'Phạm QA Engineer', status:'blocked', actualNote:'Bị block do môi trường staging lỗi DB connection', date:'12/01/2025',
+    steps:[
+      {action:'Vào HR → Import → Tải file Excel 500 nhân viên', expected:'File được upload thành công, preview hiển thị'},
+      {action:'Kiểm tra validation: email trùng, field bắt buộc thiếu', expected:'Hệ thống highlight các dòng lỗi, cho phép tải báo cáo lỗi'},
+      {action:'Click "Import" với các dòng hợp lệ', expected:'Import thành công, màn hình hiện kết quả: 490 thành công / 10 lỗi'},
+    ]},
+  { id:'TC-005', name:'Tìm kiếm workflow theo tên và trạng thái', app:'Base Workflow', feature:'Tạo Workflow', type:'Functional', priority:'medium', precond:'Có ít nhất 10 workflow với các trạng thái khác nhau', author:'Nguyễn QA Leader', assignee:'Trần Test QA', status:'pending-tc', actualNote:'', date:'11/01/2025',
+    steps:[
+      {action:'Nhập từ khóa "Auto" vào ô tìm kiếm', expected:'Hiển thị tất cả workflow có chứa "Auto" trong tên'},
+      {action:'Filter thêm trạng thái "Đang chạy"', expected:'Kết quả thu hẹp chỉ còn workflow active + chứa "Auto"'},
+      {action:'Xóa từ khóa, giữ filter trạng thái', expected:'Hiển thị tất cả workflow đang chạy'},
+    ]},
+  { id:'TC-006', name:'Tạo Request template với form tùy chỉnh', app:'Base Request', feature:'Template', type:'Functional', priority:'medium', precond:'Quyền Admin hoặc Request Manager', author:'Lê QA Analyst', assignee:'Lê QA Analyst', status:'pending-tc', actualNote:'', date:'10/01/2025',
+    steps:[
+      {action:'Vào Request → Templates → "+ Tạo template mới"', expected:'Mở form builder'},
+      {action:'Kéo thả các field: Text, Dropdown, File upload, Date picker', expected:'Field được thêm vào form, có thể cấu hình label và required'},
+      {action:'Cấu hình luồng duyệt: thêm 2 người duyệt theo thứ tự', expected:'Timeline phê duyệt hiển thị đúng'},
+      {action:'Publish template', expected:'Template xuất hiện trong danh sách khi tạo Request mới'},
+    ]},
+  { id:'TC-007', name:'Báo cáo chấm công tháng xuất Excel đúng format', app:'Base Wework', feature:'Chấm công', type:'Regression', priority:'low', precond:'Dữ liệu chấm công tháng 1/2025 đã đầy đủ', author:'Phạm QA Engineer', assignee:'Phạm QA Engineer', status:'pass', actualNote:'Xuất đúng format, đủ cột', date:'09/01/2025',
+    steps:[
+      {action:'Vào Chấm công → Báo cáo → Chọn tháng 1/2025', expected:'Hiển thị bảng chấm công tháng'},
+      {action:'Click "Xuất Excel"', expected:'File .xlsx được tải xuống'},
+      {action:'Mở file, kiểm tra các cột: Tên, Ngày, Giờ vào, Giờ ra, Tổng giờ', expected:'Đủ cột, dữ liệu khớp với màn hình'},
+    ]},
+  { id:'TC-008', name:'API tạo workflow trả về đúng response schema', app:'Base Workflow', feature:'Workflow API', type:'API', priority:'high', precond:'Postman collection v2.5, API key hợp lệ', author:'Nguyễn QA Leader', assignee:'Nguyễn QA Leader', status:'na', actualNote:'Feature chưa ra trong phiên bản hiện tại', date:'08/01/2025',
+    steps:[
+      {action:'POST /api/v2/workflows với body hợp lệ', expected:'Response 201, body chứa id, name, status, created_at'},
+      {action:'GET /api/v2/workflows/{id} với id vừa tạo', expected:'Response 200, data khớp với body đã POST'},
+      {action:'POST với thiếu field "name"', expected:'Response 422, error message rõ ràng'},
+    ]},
+];
+
+let currentTCId = null;
+let tcStepCount = 0;
+
+// ─── INIT TC ───
+function initTC() {
+  renderTCList();
+  renderTCStats();
+}
+
+// ─── RENDER LIST ───
+function renderTCList() {
+  const appF      = document.getElementById('tc-filter-app')?.value || '';
+  const featureF  = document.getElementById('tc-filter-feature')?.value || '';
+  const statusF   = document.getElementById('tc-filter-status')?.value || '';
+  const priorityF = document.getElementById('tc-filter-priority')?.value || '';
+
+  // Update feature dropdown based on app
+  updateFeatureDropdown('tc-filter-feature', 'tc-filter-app');
+
+  let list = TEST_CASES.filter(tc => {
+    if (appF      && tc.app !== appF) return false;
+    if (featureF  && tc.feature !== featureF) return false;
+    if (statusF   && tc.status !== statusF) return false;
+    if (priorityF && tc.priority !== priorityF) return false;
+    return true;
+  });
+
+  const body = document.getElementById('tc-list-body');
+  const empty = document.getElementById('tc-empty');
+  body.innerHTML = '';
+
+  if (!list.length) { empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+
+  const statusLabel = { pass:'✅ Pass', fail:'❌ Fail', blocked:'⚠️ Blocked', 'pending-tc':'⏳ Chưa test', na:'N/A' };
+  const priorityLabel = { high:'🔴 Cao', medium:'🟡 TB', low:'🟢 Thấp' };
+
+  list.forEach(tc => {
+    const row = document.createElement('div');
+    row.className = 'tc-row';
+    row.innerHTML = `
+      <div class="tc-id">${tc.id}</div>
+      <div class="tc-name-cell">
+        <div class="tc-name">${tc.name}</div>
+        <div class="tc-feature">${tc.type} · ${tc.assignee}</div>
+      </div>
+      <div>
+        <div class="tc-app-badge">${tc.app}</div>
+        <div style="font-size:11.5px;color:var(--text3);margin-top:4px">${tc.feature}</div>
+      </div>
+      <div style="font-size:12.5px;color:var(--text2)">${tc.type}</div>
+      <div><span class="tc-priority ${tc.priority}">${priorityLabel[tc.priority]}</span></div>
+      <div style="font-size:12px;color:var(--text2)">${tc.assignee.split(' ').slice(-2).join(' ')}</div>
+      <div><span class="tc-status-badge ${tc.status}">${statusLabel[tc.status]}</span></div>
+      <div style="display:flex;gap:4px">
+        <div class="btn-icon" style="width:28px;height:28px;font-size:12px" title="Xem" onclick="event.stopPropagation();openTCDetail(${JSON.stringify(tc.id)})">👁️</div>
+        <div class="btn-icon" style="width:28px;height:28px;font-size:12px" title="Sửa" onclick="event.stopPropagation();openEditTC(${JSON.stringify(tc.id)})">✏️</div>
+        <div class="btn-icon" style="width:28px;height:28px;font-size:12px" title="Xóa" onclick="event.stopPropagation();askDeleteTC(${JSON.stringify(tc.id)})">🗑️</div>
+      </div>`;
+    row.onclick = () => openTCDetail(tc.id);
+    body.appendChild(row);
+  });
+}
+
+function quickFilter(status) {
+  document.getElementById('tc-filter-status').value = status;
+  renderTCList();
+}
+
+function updateFeatureDropdown(featureElId, appElId) {
+  const appEl = document.getElementById(appElId);
+  const featEl = document.getElementById(featureElId);
+  if (!appEl || !featEl) return;
+  const app = appEl.value;
+  const prev = featEl.value;
+  const features = app ? (TC_FEATURES[app] || []) : [];
+  featEl.innerHTML = '<option value="">-- Tất cả tính năng --</option>';
+  features.forEach(f => {
+    const opt = document.createElement('option');
+    opt.value = f; opt.textContent = f;
+    if (f === prev) opt.selected = true;
+    featEl.appendChild(opt);
+  });
+}
+
+// ─── DETAIL ───
+function openTCDetail(id) {
+  const tc = TEST_CASES.find(x => x.id === id);
+  if (!tc) return;
+  currentTCId = id;
+
+  const statusLabel = { pass:'✅ Pass', fail:'❌ Fail', blocked:'⚠️ Blocked', 'pending-tc':'⏳ Chưa test', na:'N/A' };
+  const priorityLabel = { high:'🔴 Cao', medium:'🟡 Trung bình', low:'🟢 Thấp' };
+
+  document.getElementById('tc-detail-id').textContent = tc.id + ' · ' + tc.date;
+  document.getElementById('tc-detail-title').textContent = tc.name;
+  document.getElementById('tc-d-app').textContent = tc.app;
+  document.getElementById('tc-d-feature').textContent = tc.feature;
+  document.getElementById('tc-d-type').textContent = tc.type;
+  document.getElementById('tc-d-priority').innerHTML = `<span class="tc-priority ${tc.priority}" style="display:inline-block">${priorityLabel[tc.priority]}</span>`;
+  document.getElementById('tc-d-precond').textContent = tc.precond || '(Không có)';
+  document.getElementById('tc-d-author').textContent = tc.author + ' / ' + tc.assignee;
+  document.getElementById('tc-d-actual-note').value = tc.actualNote || '';
+
+  const stepsEl = document.getElementById('tc-d-steps');
+  stepsEl.innerHTML = tc.steps.map((s, i) => `
+    <div class="tc-step">
+      <div class="tc-step-num">${i + 1}</div>
+      <div>
+        <div class="tc-step-label">Thao tác</div>
+        <div class="tc-step-text">${s.action}</div>
+      </div>
+      <div>
+        <div class="tc-step-label tc-expected">Kết quả mong đợi</div>
+        <div class="tc-step-text">${s.expected}</div>
+      </div>
+    </div>`).join('');
+
+  navigate('tc-detail');
+}
+
+function updateTCStatus(status) {
+  const tc = TEST_CASES.find(x => x.id === currentTCId);
+  if (!tc) return;
+  tc.status = status;
+  tc.actualNote = document.getElementById('tc-d-actual-note').value;
+  const statusLabel = { pass:'✅ Pass', fail:'❌ Fail', blocked:'⚠️ Blocked', 'pending-tc':'⏳ Chưa test', na:'N/A' };
+  renderTCList(); renderTCStats();
+  showToast('✅ Đã cập nhật kết quả: ' + statusLabel[status]);
+}
+
+function editCurrentTC() { openEditTC(currentTCId); }
+
+// ─── DELETE TC ───
+let pendingDeleteTCId = null;
+function askDeleteTC(id) {
+  pendingDeleteTCId = id || currentTCId;
+  const tc = TEST_CASES.find(x => x.id === pendingDeleteTCId);
+  if (!tc) return;
+  document.getElementById('confirm-delete-tc-title').textContent = tc.id + ': ' + tc.name;
+  document.getElementById('confirmDeleteTCModal').classList.add('show');
+}
+function doDeleteTC() {
+  TEST_CASES = TEST_CASES.filter(x => x.id !== pendingDeleteTCId);
+  document.getElementById('confirmDeleteTCModal').classList.remove('show');
+  renderTCList(); renderTCStats();
+  if (currentPage === 'tc-detail') navigate('testcases');
+  showToast('🗑️ Đã xóa Test Case');
+}
+document.getElementById('confirmDeleteTCModal').addEventListener('click', function(e) {
+  if (e.target === this) this.classList.remove('show');
+});
+
+// ─── EDITOR (Create/Edit) ───
+function openEditTC(id) {
+  const tc = TEST_CASES.find(x => x.id === id);
+  if (!tc) return;
+  currentTCId = id;
+  document.getElementById('tc-editor-title').innerHTML = '✏️ <span>Chỉnh sửa Test Case</span>';
+  document.getElementById('tc-edit-id').value = id;
+  document.getElementById('tc-name').value = tc.name;
+  document.getElementById('tc-app').value = tc.app;
+  updateFeatureDropdown('tc-feature', 'tc-app');
+  setTimeout(() => { document.getElementById('tc-feature').value = tc.feature; }, 10);
+  document.getElementById('tc-feature-custom').value = '';
+  document.getElementById('tc-type').value = tc.type;
+  document.getElementById('tc-priority').value = tc.priority;
+  document.getElementById('tc-precond').value = tc.precond;
+  // Render steps
+  const stepsEl = document.getElementById('tc-steps-form');
+  stepsEl.innerHTML = '';
+  tcStepCount = 0;
+  tc.steps.forEach(s => addTCStep(s.action, s.expected));
+  navigate('tc-editor');
+}
+
+function initTCEditor() {
+  document.getElementById('tc-editor-title').innerHTML = '➕ <span>Tạo Test Case mới</span>';
+  document.getElementById('tc-edit-id').value = '';
+  document.getElementById('tc-name').value = '';
+  document.getElementById('tc-app').value = '';
+  document.getElementById('tc-feature').innerHTML = '<option value="">-- Chọn tính năng --</option>';
+  document.getElementById('tc-feature-custom').value = '';
+  document.getElementById('tc-type').value = 'Functional';
+  document.getElementById('tc-priority').value = 'medium';
+  document.getElementById('tc-precond').value = '';
+  const stepsEl = document.getElementById('tc-steps-form');
+  stepsEl.innerHTML = '';
+  tcStepCount = 0;
+  addTCStep(); addTCStep(); // Start with 2 empty steps
+}
+
+function addTCStep(action, expected) {
+  tcStepCount++;
+  const idx = tcStepCount;
+  const el = document.createElement('div');
+  el.className = 'tc-form-step';
+  el.id = 'tc-step-' + idx;
+  el.innerHTML = `
+    <div class="tc-step-idx">${idx}</div>
+    <div>
+      <div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:5px;text-transform:uppercase">Thao tác thực hiện *</div>
+      <textarea class="tc-step-textarea" id="tc-step-action-${idx}" placeholder="Mô tả bước thực hiện...">${action || ''}</textarea>
+    </div>
+    <div>
+      <div style="font-size:11px;font-weight:700;color:var(--accent);margin-bottom:5px;text-transform:uppercase">Kết quả mong đợi *</div>
+      <textarea class="tc-step-textarea" id="tc-step-expected-${idx}" placeholder="Kết quả mong đợi sau bước này...">${expected || ''}</textarea>
+    </div>
+    <button class="tc-remove-step" onclick="removeTCStep('tc-step-${idx}')" title="Xóa bước">✕</button>`;
+  document.getElementById('tc-steps-form').appendChild(el);
+}
+
+function removeTCStep(stepId) {
+  const el = document.getElementById(stepId);
+  if (el) el.remove();
+  // Re-number remaining steps
+  document.querySelectorAll('.tc-form-step .tc-step-idx').forEach((el, i) => { el.textContent = i + 1; });
+}
+
+function saveTCForm() {
+  const name     = document.getElementById('tc-name').value.trim();
+  const app      = document.getElementById('tc-app').value;
+  const feature  = document.getElementById('tc-feature-custom').value.trim() || document.getElementById('tc-feature').value;
+  const type     = document.getElementById('tc-type').value;
+  const priority = document.getElementById('tc-priority').value;
+  const precond  = document.getElementById('tc-precond').value.trim();
+  const editId   = document.getElementById('tc-edit-id').value;
+
+  if (!name || !app || !feature) { showToast('⚠️ Vui lòng điền Tên, App và Tính năng!'); return; }
+
+  // Collect steps
+  const steps = [];
+  document.querySelectorAll('.tc-form-step').forEach((el, i) => {
+    const idx = el.id.replace('tc-step-', '');
+    const action   = document.getElementById('tc-step-action-' + idx)?.value.trim();
+    const expected = document.getElementById('tc-step-expected-' + idx)?.value.trim();
+    if (action) steps.push({ action, expected: expected || '' });
+  });
+
+  if (!steps.length) { showToast('⚠️ Cần ít nhất 1 bước thực hiện!'); return; }
+
+  // Add feature to TC_FEATURES if custom
+  const customFeat = document.getElementById('tc-feature-custom').value.trim();
+  if (customFeat && app && !TC_FEATURES[app]?.includes(customFeat)) {
+    if (!TC_FEATURES[app]) TC_FEATURES[app] = [];
+    TC_FEATURES[app].push(customFeat);
+  }
+
+  if (editId) {
+    // Update existing
+    const tc = TEST_CASES.find(x => x.id === editId);
+    if (tc) { Object.assign(tc, { name, app, feature, type, priority, precond, steps }); }
+    showToast('✅ Đã cập nhật Test Case!');
+  } else {
+    // Create new
+    const newId = 'TC-' + String(TEST_CASES.length + 1).padStart(3, '0');
+    TEST_CASES.push({ id: newId, name, app, feature, type, priority, precond, steps,
+      author:'Tester Leader', assignee:'Tester Leader',
+      status:'pending-tc', actualNote:'', date: new Date().toLocaleDateString('vi-VN') });
+    showToast('✅ Đã tạo Test Case ' + newId + '!');
+  }
+
+  renderTCList(); renderTCStats();
+  navigate('testcases');
+}
+
+// ─── STATS ───
+function renderTCStats() {
+  const total   = TEST_CASES.length;
+  const pass    = TEST_CASES.filter(t=>t.status==='pass').length;
+  const fail    = TEST_CASES.filter(t=>t.status==='fail').length;
+  const blocked = TEST_CASES.filter(t=>t.status==='blocked').length;
+  const pending = TEST_CASES.filter(t=>t.status==='pending-tc').length;
+  const na      = TEST_CASES.filter(t=>t.status==='na').length;
+  const passRate = total ? Math.round(pass / (total - na) * 100) : 0;
+
+  const cards = document.getElementById('tc-stats-cards');
+  if (!cards) return;
+  cards.innerHTML = `
+    <div class="tc-stat-card"><div class="tc-stat-num" style="color:var(--brand)">${total}</div><div class="tc-stat-label">Tổng Test Case</div></div>
+    <div class="tc-stat-card"><div class="tc-stat-num" style="color:#28A745">${pass}</div><div class="tc-stat-label">✅ Pass</div></div>
+    <div class="tc-stat-card"><div class="tc-stat-num" style="color:#DC3545">${fail}</div><div class="tc-stat-label">❌ Fail</div></div>
+    <div class="tc-stat-card"><div class="tc-stat-num" style="color:#856404">${blocked}</div><div class="tc-stat-label">⚠️ Blocked</div></div>
+    <div class="tc-stat-card"><div class="tc-stat-num" style="color:var(--text3)">${passRate}%</div><div class="tc-stat-label">Tỷ lệ Pass</div></div>`;
+
+  // Donut chart
+  drawTCDonut([pass, fail, blocked, pending, na]);
+
+  // App bar chart
+  const apps = ['Base Workflow','Base Wework','Base Request'];
+  const appChart = document.getElementById('tc-app-chart');
+  if (appChart) {
+    const max = Math.max(...apps.map(a => TEST_CASES.filter(t=>t.app===a).length)) || 1;
+    appChart.innerHTML = apps.map(a => {
+      const cnt = TEST_CASES.filter(t=>t.app===a).length;
+      return `<div class="chart-bar-item">
+        <div class="chart-bar-label">${a}</div>
+        <div class="chart-bar-track"><div class="chart-bar-fill" style="width:${(cnt/max*100).toFixed(0)}%"></div></div>
+        <div class="chart-bar-val">${cnt}</div>
+      </div>`;
+    }).join('');
+  }
+
+  // Feature table
+  const featTable = document.getElementById('tc-feature-table');
+  if (featTable) {
+    let rows = '';
+    apps.forEach(app => {
+      const feats = [...new Set(TEST_CASES.filter(t=>t.app===app).map(t=>t.feature))];
+      feats.forEach(feat => {
+        const tcs  = TEST_CASES.filter(t=>t.app===app && t.feature===feat);
+        const p    = tcs.filter(t=>t.status==='pass').length;
+        const f    = tcs.filter(t=>t.status==='fail').length;
+        const rate = tcs.length ? Math.round(p/tcs.length*100) : 0;
+        const color = rate >= 80 ? '#28A745' : rate >= 50 ? '#856404' : '#DC3545';
+        rows += `<div class="table-row">
+          <div class="col-cat">${app}</div>
+          <div class="col-cat">${feat}</div>
+          <div class="col-views">${tcs.length}</div>
+          <div class="col-views" style="color:#28A745;font-weight:700">${p}</div>
+          <div class="col-views" style="color:#DC3545;font-weight:700">${f}</div>
+          <div class="col-rate" style="color:${color};font-weight:700">${rate}%</div>
+        </div>`;
+      });
+    });
+    featTable.innerHTML = rows;
+  }
+}
+
+function drawTCDonut(data) {
+  const canvas = document.getElementById('tc-donut');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const colors = ['#28A745','#DC3545','#F0C040','#5B9BD5','#AAAAAA'];
+  const labels = ['Pass','Fail','Blocked','Chưa test','N/A'];
+  const total = data.reduce((a,b)=>a+b,0) || 1;
+  ctx.clearRect(0,0,160,160);
+  let startAngle = -Math.PI / 2;
+  data.forEach((val, i) => {
+    if (!val) return;
+    const slice = (val / total) * Math.PI * 2;
+    ctx.beginPath();
+    ctx.moveTo(80,80);
+    ctx.arc(80,80,70,startAngle,startAngle+slice);
+    ctx.closePath();
+    ctx.fillStyle = colors[i];
+    ctx.fill();
+    startAngle += slice;
+  });
+  // Center hole
+  ctx.beginPath();
+  ctx.arc(80,80,38,0,Math.PI*2);
+  ctx.fillStyle = isDark ? '#162333' : '#fff';
+  ctx.fill();
+  ctx.fillStyle = isDark ? '#E4EEF7' : '#1A2B3C';
+  ctx.font = 'bold 18px Be Vietnam Pro, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(total, 80, 80);
+
+  // Legend
+  const legend = document.getElementById('tc-legend');
+  if (legend) {
+    legend.innerHTML = data.map((v,i) => v > 0 ? `
+      <div class="tc-legend-item">
+        <div class="tc-legend-dot" style="background:${colors[i]}"></div>
+        <span style="font-size:13px;color:var(--text2)">${labels[i]}: <b>${v}</b></span>
+      </div>` : '').join('');
+  }
+}
+
+// Override navigate to handle TC pages
+const _originalNavigate = navigate;
+window.navigate = function(page) {
+  if (page === 'tc-editor' && !document.getElementById('tc-edit-id')?.value) {
+    initTCEditor();
+  }
+  _originalNavigate(page);
+  if (page === 'testcases') renderTCList();
+  if (page === 'tc-stats') { renderTCStats(); setTimeout(drawTCDonut.bind(null, [
+    TEST_CASES.filter(t=>t.status==='pass').length,
+    TEST_CASES.filter(t=>t.status==='fail').length,
+    TEST_CASES.filter(t=>t.status==='blocked').length,
+    TEST_CASES.filter(t=>t.status==='pending-tc').length,
+    TEST_CASES.filter(t=>t.status==='na').length,
+  ]), 100); }
+};
+
+
+// ════════════════════════════════════════
+// ─── SPREADSHEET ENGINE ───
+// ════════════════════════════════════════
+
+// Column definitions — user can add/remove/rename
+let SHEET_COLS = [
+  { key:'id',        label:'ID',             width:90,  type:'text',   readonly:true },
+  { key:'name',      label:'Tên Test Case',  width:280, type:'text' },
+  { key:'app',       label:'App',            width:140, type:'select', options:['Base Workflow','Base Wework','Base Request'] },
+  { key:'feature',   label:'Tính năng',      width:140, type:'text' },
+  { key:'type',      label:'Loại',           width:120, type:'select', options:['Functional','Regression','Smoke','Integration','Performance','Security','UI/UX','API'] },
+  { key:'priority',  label:'Ưu tiên',        width:110, type:'chip',   chipMap:{ high:'🔴 Cao', medium:'🟡 TB', low:'🟢 Thấp' } },
+  { key:'assignee',  label:'Người test',     width:150, type:'text' },
+  { key:'status',    label:'Kết quả',        width:120, type:'chip',   chipMap:{ pass:'✅ Pass', fail:'❌ Fail', blocked:'⚠️ Blocked', 'pending-tc':'⏳ Chưa test', na:'N/A' } },
+  { key:'date',      label:'Ngày',           width:100, type:'text' },
+  { key:'actualNote',label:'Ghi chú',        width:200, type:'text' },
+];
+
+let sheetData = [];        // rows: [{id,name,app,...}]
+let sheetSel = {r:-1,c:-1}; // selected cell
+let sheetEditing = false;
+let sheetHistory = [];     // undo stack
+let sheetFuture = [];      // redo stack
+let ctxRowId = null;
+let ctxRowIdx = -1;
+let ctxColIdx = -1;
+let resizingCol = null;
+let resizeStartX = 0;
+let resizeStartW = 0;
+let frozenRows = 1;        // freeze header row
+
+function syncSheetFromTC() {
+  sheetData = TEST_CASES.map(tc => ({ ...tc }));
+}
+function syncTCFromSheet() {
+  TEST_CASES = sheetData.map(r => TEST_CASES.find(t=>t.id===r.id) ? Object.assign(TEST_CASES.find(t=>t.id===r.id), r) : r);
+  TEST_CASES = sheetData.map(r => {
+    const orig = TEST_CASES.find(t=>t.id===r.id);
+    return orig ? Object.assign({}, orig, r) : r;
+  });
+}
+
+function renderSheet() {
+  // Apply filters
+  const appF      = document.getElementById('tc-filter-app')?.value || '';
+  const featureF  = document.getElementById('tc-filter-feature')?.value || '';
+  const statusF   = document.getElementById('tc-filter-status')?.value || '';
+  const priorityF = document.getElementById('tc-filter-priority')?.value || '';
+  updateFeatureDropdown('tc-filter-feature','tc-filter-app');
+
+  let rows = sheetData.filter(tc => {
+    if (appF      && tc.app !== appF) return false;
+    if (featureF  && tc.feature !== featureF) return false;
+    if (statusF   && tc.status !== statusF) return false;
+    if (priorityF && tc.priority !== priorityF) return false;
+    return true;
+  });
+
+  document.getElementById('tc-empty').style.display = rows.length ? 'none' : 'block';
+
+  const table = document.getElementById('sheet-table');
+  if (!table) return;
+  table.innerHTML = '';
+
+  // COLGROUP
+  const colgroup = document.createElement('colgroup');
+  // row-num col
+  const rnCol = document.createElement('col');
+  rnCol.style.width = '42px';
+  colgroup.appendChild(rnCol);
+  SHEET_COLS.forEach(col => {
+    const c = document.createElement('col');
+    c.style.width = col.width + 'px';
+    colgroup.appendChild(c);
+  });
+  // add-col
+  const addCol = document.createElement('col');
+  addCol.style.width = '36px';
+  colgroup.appendChild(addCol);
+  table.appendChild(colgroup);
+
+  // THEAD
+  const thead = document.createElement('thead');
+  thead.className = 'sheet-thead';
+  const headTr = document.createElement('tr');
+
+  // Row-num header
+  const rnTh = document.createElement('th');
+  rnTh.className = 'sheet-rn';
+  rnTh.textContent = '#';
+  headTr.appendChild(rnTh);
+
+  // Column headers
+  SHEET_COLS.forEach((col, ci) => {
+    const th = document.createElement('th');
+    th.style.width = col.width + 'px';
+    th.innerHTML = `<div class="sheet-th-inner">
+      <span class="sheet-th-label">${col.label}</span>
+      <span class="sheet-col-resize" data-ci="${ci}" title="Kéo để thay đổi độ rộng"></span>
+    </div>`;
+    th.addEventListener('contextmenu', e => { e.preventDefault(); showColCtx(e, ci); });
+    headTr.appendChild(th);
+  });
+
+  // Add-column button
+  const addColTh = document.createElement('th');
+  addColTh.className = 'sheet-add-col-th';
+  addColTh.innerHTML = '<span title="Thêm cột">＋</span>';
+  addColTh.onclick = () => sheetAddCol();
+  headTr.appendChild(addColTh);
+
+  thead.appendChild(headTr);
+  table.appendChild(thead);
+
+  // TBODY
+  const tbody = document.createElement('tbody');
+  tbody.className = 'sheet-tbody';
+
+  rows.forEach((row, ri) => {
+    const tr = document.createElement('tr');
+    tr.dataset.id = row.id;
+    tr.dataset.ri = ri;
+
+    // Row number
+    const rnTd = document.createElement('td');
+    rnTd.className = 'sheet-rn';
+    rnTd.textContent = ri + 1;
+    rnTd.onclick = () => selectRow(ri);
+    rnTd.addEventListener('contextmenu', e => { e.preventDefault(); ctxRowIdx=ri; ctxRowId=row.id; showCtxMenu(e); });
+    tr.appendChild(rnTd);
+
+    // Data cells
+    SHEET_COLS.forEach((col, ci) => {
+      const td = document.createElement('td');
+      td.className = 'sheet-cell';
+      td.dataset.ri = ri;
+      td.dataset.ci = ci;
+      td.dataset.key = col.key;
+
+      const val = row[col.key] ?? '';
+      const inner = document.createElement('div');
+      inner.className = 'sheet-cell-inner';
+
+      if (col.type === 'chip' && col.chipMap) {
+        const span = document.createElement('span');
+        span.className = 'chip ' + val;
+        span.textContent = col.chipMap[val] || val;
+        inner.appendChild(span);
+      } else {
+        inner.textContent = val;
+      }
+      td.appendChild(inner);
+
+      // Hidden input for editing
+      const input = document.createElement('input');
+      input.className = 'cell-input';
+      input.value = val;
+      td.appendChild(input);
+
+      // Events
+      td.addEventListener('click', e => selectCell(ri, ci, row.id));
+      td.addEventListener('dblclick', e => startEdit(ri, ci, row.id, col));
+      td.addEventListener('contextmenu', e => { e.preventDefault(); ctxRowIdx=ri; ctxRowId=row.id; ctxColIdx=ci; showCtxMenu(e); });
+      input.addEventListener('keydown', e => handleCellKeydown(e, ri, ci, row.id, col));
+      input.addEventListener('blur', e => commitEdit(ri, ci, row.id, col, input.value));
+
+      tr.appendChild(td);
+    });
+
+    // Empty add-col cell
+    const addTd = document.createElement('td');
+    addTd.style.background = 'var(--surface2)';
+    tr.appendChild(addTd);
+
+    tbody.appendChild(tr);
+  });
+  table.appendChild(tbody);
+
+  // Resize drag handlers
+  table.querySelectorAll('.sheet-col-resize').forEach(handle => {
+    handle.addEventListener('mousedown', startColResize);
+  });
+
+  // Restore selection
+  if (sheetSel.r >= 0 && sheetSel.r < rows.length) {
+    const cell = table.querySelector(`td[data-ri="${sheetSel.r}"][data-ci="${sheetSel.c}"]`);
+    if (cell) cell.classList.add('selected');
+    updateFormulaBar(rows[sheetSel.r]?.[SHEET_COLS[sheetSel.c]?.key] ?? '');
+    updateCellRef(sheetSel.r, sheetSel.c);
+  }
+}
+
+// ─── SELECTION ───
+function selectCell(ri, ci, rowId) {
+  commitCurrentEdit();
+  document.querySelectorAll('.sheet-cell.selected').forEach(el => el.classList.remove('selected'));
+  document.querySelectorAll('.sheet-tbody tr.selected-row').forEach(el => el.classList.remove('selected-row'));
+  sheetSel = { r:ri, c:ci };
+  const cell = document.querySelector(`td[data-ri="${ri}"][data-ci="${ci}"]`);
+  if (cell) cell.classList.add('selected');
+  const key = SHEET_COLS[ci]?.key;
+  const rows = getFilteredRows();
+  updateFormulaBar(rows[ri]?.[key] ?? '');
+  updateCellRef(ri, ci);
+}
+
+function selectRow(ri) {
+  document.querySelectorAll('.sheet-tbody tr.selected-row').forEach(el => el.classList.remove('selected-row'));
+  const tr = document.querySelector(`.sheet-tbody tr[data-ri="${ri}"]`);
+  if (tr) tr.classList.add('selected-row');
+  sheetSel = { r:ri, c:0 };
+}
+
+function updateFormulaBar(val) {
+  const bar = document.getElementById('sheet-formula-bar');
+  if (bar) bar.textContent = val || '';
+}
+function updateCellRef(ri, ci) {
+  const ref = document.getElementById('sheet-cell-ref');
+  if (ref) ref.textContent = String.fromCharCode(65+ci) + (ri+1);
+}
+
+// ─── EDITING ───
+function startEdit(ri, ci, rowId, col) {
+  if (col.readonly) return;
+  commitCurrentEdit();
+  sheetEditing = true;
+  const cell = document.querySelector(`td[data-ri="${ri}"][data-ci="${ci}"]`);
+  if (!cell) return;
+  cell.classList.add('editing', 'selected');
+  sheetSel = {r:ri, c:ci};
+
+  const rows = getFilteredRows();
+  const val = rows[ri]?.[col.key] ?? '';
+
+  if (col.type === 'select') {
+    // Dropdown editor
+    const sel = document.createElement('select');
+    sel.className = 'cell-input';
+    sel.style.cssText = 'display:block;position:absolute;inset:0;width:100%;height:100%;border:none;outline:2px solid var(--brand);background:var(--surface);padding:0 8px;font-size:13px;font-family:inherit;color:var(--text);z-index:5';
+    (col.options || []).forEach(opt => {
+      const o = document.createElement('option');
+      o.value = opt; o.textContent = opt;
+      if (opt === val) o.selected = true;
+      sel.appendChild(o);
+    });
+    sel.addEventListener('change', () => { commitEdit(ri, ci, rowId, col, sel.value); cell.classList.remove('editing'); sel.remove(); });
+    sel.addEventListener('blur', () => { commitEdit(ri, ci, rowId, col, sel.value); cell.classList.remove('editing'); sel.remove(); });
+    sel.addEventListener('keydown', e => { if (e.key==='Escape'||e.key==='Enter') { commitEdit(ri,ci,rowId,col,sel.value); cell.classList.remove('editing'); sel.remove(); } });
+    cell.appendChild(sel);
+    setTimeout(() => sel.focus(), 0);
+    return;
+  }
+
+  if (col.type === 'chip') {
+    // Chip cycle editor: click through options
+    const keys = Object.keys(col.chipMap);
+    const curIdx = keys.indexOf(val);
+    const nextVal = keys[(curIdx+1) % keys.length];
+    pushHistory();
+    updateSheetCell(ri, col.key, nextVal);
+    cell.classList.remove('editing');
+    sheetEditing = false;
+    return;
+  }
+
+  // Text editor
+  const input = cell.querySelector('input.cell-input');
+  if (input) {
+    input.value = val;
+    setTimeout(() => { input.focus(); input.select(); }, 0);
+  }
+}
+
+function commitCurrentEdit() {
+  document.querySelectorAll('.sheet-cell.editing').forEach(cell => {
+    cell.classList.remove('editing');
+  });
+  sheetEditing = false;
+}
+
+function commitEdit(ri, ci, rowId, col, newVal) {
+  const cell = document.querySelector(`td[data-ri="${ri}"][data-ci="${ci}"]`);
+  if (cell) cell.classList.remove('editing');
+  sheetEditing = false;
+  const rows = getFilteredRows();
+  const oldVal = rows[ri]?.[col.key];
+  if (newVal === oldVal || newVal === undefined) return;
+  pushHistory();
+  updateSheetCell(ri, col.key, newVal);
+  updateFormulaBar(newVal);
+}
+
+function updateSheetCell(ri, key, val) {
+  const rows = getFilteredRows();
+  const rowId = rows[ri]?.id;
+  if (!rowId) return;
+  const d = sheetData.find(r => r.id === rowId);
+  if (d) d[key] = val;
+  syncTCFromSheet();
+  renderSheet();
+  renderTCStats();
+}
+
+function handleCellKeydown(e, ri, ci, rowId, col) {
+  if (e.key === 'Enter') { e.preventDefault(); commitEdit(ri, ci, rowId, col, e.target.value); moveCell(1, 0); }
+  else if (e.key === 'Tab') { e.preventDefault(); commitEdit(ri, ci, rowId, col, e.target.value); moveCell(0, e.shiftKey?-1:1); }
+  else if (e.key === 'Escape') { const cell=document.querySelector(`td[data-ri="${ri}"][data-ci="${ci}"]`); if(cell)cell.classList.remove('editing'); sheetEditing=false; }
+}
+
+function moveCell(dr, dc) {
+  const nr = Math.max(0, Math.min(getFilteredRows().length-1, sheetSel.r+dr));
+  const nc = Math.max(0, Math.min(SHEET_COLS.length-1, sheetSel.c+dc));
+  selectCell(nr, nc, getFilteredRows()[nr]?.id);
+}
+
+// ─── KEYBOARD NAVIGATION ───
+document.addEventListener('keydown', e => {
+  if (currentPage !== 'testcases') return;
+  if (sheetEditing) return;
+  const cell = document.querySelector(`td[data-ri="${sheetSel.r}"][data-ci="${sheetSel.c}"]`);
+  if (!cell) return;
+  if (e.key === 'ArrowDown') { e.preventDefault(); moveCell(1,0); }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); moveCell(-1,0); }
+  else if (e.key === 'ArrowRight') { e.preventDefault(); moveCell(0,1); }
+  else if (e.key === 'ArrowLeft') { e.preventDefault(); moveCell(0,-1); }
+  else if (e.key === 'Enter') { e.preventDefault(); startEdit(sheetSel.r, sheetSel.c, getFilteredRows()[sheetSel.r]?.id, SHEET_COLS[sheetSel.c]); }
+  else if (e.key === 'Delete' || e.key === 'Backspace') {
+    if (cell && !SHEET_COLS[sheetSel.c]?.readonly) { pushHistory(); updateSheetCell(sheetSel.r, SHEET_COLS[sheetSel.c].key, ''); }
+  } else if (e.key === 'Tab') { e.preventDefault(); moveCell(0, e.shiftKey?-1:1); }
+  else if ((e.ctrlKey||e.metaKey) && e.key==='z') { e.preventDefault(); sheetUndo(); }
+  else if ((e.ctrlKey||e.metaKey) && e.key==='y') { e.preventDefault(); sheetRedo(); }
+});
+
+// ─── HISTORY ───
+function pushHistory() {
+  sheetHistory.push(JSON.stringify(sheetData));
+  if (sheetHistory.length > 50) sheetHistory.shift();
+  sheetFuture = [];
+}
+function sheetUndo() {
+  if (!sheetHistory.length) return;
+  sheetFuture.push(JSON.stringify(sheetData));
+  sheetData = JSON.parse(sheetHistory.pop());
+  syncTCFromSheet(); renderSheet(); showToast('↩ Đã hoàn tác');
+}
+function sheetRedo() {
+  if (!sheetFuture.length) return;
+  sheetHistory.push(JSON.stringify(sheetData));
+  sheetData = JSON.parse(sheetFuture.pop());
+  syncTCFromSheet(); renderSheet(); showToast('↪ Đã làm lại');
+}
+
+// ─── ADD ROW / COL ───
+function sheetAddRow() {
+  pushHistory();
+  const newId = 'TC-' + String(sheetData.length+1).padStart(3,'0');
+  const newRow = { id:newId, name:'', app:'Base Workflow', feature:'', type:'Functional', priority:'medium', assignee:'', status:'pending-tc', date:new Date().toLocaleDateString('vi-VN'), actualNote:'', author:'Tester Leader', steps:[] };
+  sheetData.push(newRow);
+  TEST_CASES.push({...newRow});
+  renderSheet();
+  setTimeout(() => startEdit(sheetData.length-1, 1, newId, SHEET_COLS[1]), 50);
+}
+
+function sheetAddCol() {
+  const name = prompt('Tên cột mới:');
+  if (!name) return;
+  const key = 'custom_' + Date.now();
+  SHEET_COLS.push({ key, label:name, width:140, type:'text' });
+  sheetData.forEach(r => r[key] = '');
+  renderSheet();
+}
+
+// ─── COLUMN RESIZE ───
+function startColResize(e) {
+  e.preventDefault();
+  const ci = parseInt(e.target.dataset.ci);
+  resizingCol = ci;
+  resizeStartX = e.clientX;
+  resizeStartW = SHEET_COLS[ci].width;
+  e.target.classList.add('dragging');
+  document.addEventListener('mousemove', doColResize);
+  document.addEventListener('mouseup', stopColResize);
+}
+function doColResize(e) {
+  if (resizingCol === null) return;
+  const delta = e.clientX - resizeStartX;
+  SHEET_COLS[resizingCol].width = Math.max(60, resizeStartW + delta);
+  // Update colgroup directly for performance
+  const colgroup = document.querySelector('#sheet-table colgroup');
+  if (colgroup) {
+    const cols = colgroup.querySelectorAll('col');
+    if (cols[resizingCol+1]) cols[resizingCol+1].style.width = SHEET_COLS[resizingCol].width + 'px';
+  }
+}
+function stopColResize(e) {
+  if (resizingCol === null) return;
+  document.querySelectorAll('.sheet-col-resize.dragging').forEach(el => el.classList.remove('dragging'));
+  resizingCol = null;
+  document.removeEventListener('mousemove', doColResize);
+  document.removeEventListener('mouseup', stopColResize);
+}
+
+// ─── FREEZE TOGGLE ───
+function freezeToggle() {
+  frozenRows = frozenRows ? 0 : 1;
+  const thead = document.querySelector('.sheet-thead');
+  if (thead) thead.style.position = frozenRows ? 'sticky' : 'static';
+  showToast(frozenRows ? '❄️ Đã freeze hàng tiêu đề' : '✅ Đã bỏ freeze');
+}
+
+// ─── CONTEXT MENU ───
+function showCtxMenu(e) {
+  const menu = document.getElementById('sheetCtxMenu');
+  menu.style.top = Math.min(e.clientY, window.innerHeight-240) + 'px';
+  menu.style.left = Math.min(e.clientX, window.innerWidth-200) + 'px';
+  menu.classList.add('show');
+}
+function showColCtx(e, ci) { ctxColIdx=ci; showCtxMenu(e); }
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('.sheet-ctx-menu')) document.getElementById('sheetCtxMenu')?.classList.remove('show');
+});
+
+function ctxInsertRowAbove() {
+  document.getElementById('sheetCtxMenu').classList.remove('show');
+  const rows = getFilteredRows();
+  pushHistory();
+  const newId = 'TC-' + Date.now();
+  const newRow = { id:newId, name:'', app:'Base Workflow', feature:'', type:'Functional', priority:'medium', assignee:'', status:'pending-tc', date:new Date().toLocaleDateString('vi-VN'), actualNote:'', author:'Tester Leader', steps:[] };
+  const globalIdx = sheetData.findIndex(r => r.id === rows[ctxRowIdx]?.id);
+  sheetData.splice(globalIdx, 0, newRow);
+  TEST_CASES.splice(globalIdx, 0, {...newRow});
+  renderSheet();
+}
+function ctxInsertRowBelow() {
+  document.getElementById('sheetCtxMenu').classList.remove('show');
+  const rows = getFilteredRows();
+  pushHistory();
+  const newId = 'TC-' + Date.now();
+  const newRow = { id:newId, name:'', app:'Base Workflow', feature:'', type:'Functional', priority:'medium', assignee:'', status:'pending-tc', date:new Date().toLocaleDateString('vi-VN'), actualNote:'', author:'Tester Leader', steps:[] };
+  const globalIdx = sheetData.findIndex(r => r.id === rows[ctxRowIdx]?.id);
+  sheetData.splice(globalIdx+1, 0, newRow);
+  TEST_CASES.splice(globalIdx+1, 0, {...newRow});
+  renderSheet();
+}
+function ctxDeleteRow() {
+  document.getElementById('sheetCtxMenu').classList.remove('show');
+  const rows = getFilteredRows();
+  const rowId = rows[ctxRowIdx]?.id;
+  if (!rowId) return;
+  if (!confirm('Xóa hàng này?')) return;
+  pushHistory();
+  sheetData = sheetData.filter(r => r.id !== rowId);
+  TEST_CASES = TEST_CASES.filter(r => r.id !== rowId);
+  renderSheet(); renderTCStats();
+}
+function ctxDuplicateRow() {
+  document.getElementById('sheetCtxMenu').classList.remove('show');
+  const rows = getFilteredRows();
+  const row = rows[ctxRowIdx];
+  if (!row) return;
+  pushHistory();
+  const newId = 'TC-' + Date.now();
+  const dup = { ...row, id:newId, name:'[Copy] '+row.name, status:'pending-tc' };
+  const globalIdx = sheetData.findIndex(r => r.id === row.id);
+  sheetData.splice(globalIdx+1, 0, dup);
+  TEST_CASES.splice(globalIdx+1, 0, {...dup});
+  renderSheet(); showToast('📋 Đã nhân đôi hàng');
+}
+function ctxInsertColRight() {
+  document.getElementById('sheetCtxMenu').classList.remove('show');
+  const name = prompt('Tên cột mới:');
+  if (!name) return;
+  const key = 'custom_' + Date.now();
+  SHEET_COLS.splice(ctxColIdx+1, 0, { key, label:name, width:140, type:'text' });
+  sheetData.forEach(r => r[key]='');
+  renderSheet();
+}
+function ctxDeleteCol() {
+  document.getElementById('sheetCtxMenu').classList.remove('show');
+  if (SHEET_COLS[ctxColIdx]?.readonly) { showToast('⚠️ Không thể xóa cột này'); return; }
+  if (!confirm('Xóa cột "' + SHEET_COLS[ctxColIdx]?.label + '"?')) return;
+  SHEET_COLS.splice(ctxColIdx, 1);
+  renderSheet();
+}
+function ctxRenameCol() {
+  document.getElementById('sheetCtxMenu').classList.remove('show');
+  const name = prompt('Tên mới cho cột:', SHEET_COLS[ctxColIdx]?.label);
+  if (name) { SHEET_COLS[ctxColIdx].label = name; renderSheet(); }
+}
+function ctxOpenDetail() {
+  document.getElementById('sheetCtxMenu').classList.remove('show');
+  openTCDetail(ctxRowId);
+}
+
+// ─── EXPORT / IMPORT CSV ───
+function exportSheetCSV() {
+  const header = SHEET_COLS.map(c => '"'+c.label+'"').join(',');
+  const rows = sheetData.map(row => SHEET_COLS.map(c => '"'+(row[c.key]||'').toString().replace(/"/g,'""')+'"').join(','));
+  const csv = [header, ...rows].join('\r\n');
+  const blob = new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'test_cases_' + new Date().toLocaleDateString('vi-VN').replace(/\//g,'-') + '.csv';
+  a.click();
+  showToast('📥 Đã xuất CSV!');
+}
+function importCSVClick() { document.getElementById('csv-import-input').click(); }
+function importCSV(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const lines = e.target.result.split(/\r?\n/).filter(l => l.trim());
+    if (lines.length < 2) { showToast('⚠️ File CSV trống hoặc không hợp lệ'); return; }
+    pushHistory();
+    const headers = lines[0].split(',').map(h => h.replace(/^"|"$/g,'').trim());
+    const newRows = lines.slice(1).map((line,i) => {
+      const vals = line.match(/(".*?"|[^,]+|(?<=,)(?=,)|^(?=,)|(?<=,)$)/g) || [];
+      const row = { id:'TC-IMP-'+(i+1), status:'pending-tc', steps:[], author:'Import', date:new Date().toLocaleDateString('vi-VN') };
+      headers.forEach((h,hi) => {
+        const col = SHEET_COLS.find(c=>c.label===h||c.key===h);
+        if (col) row[col.key] = (vals[hi]||'').replace(/^"|"$/g,'');
+      });
+      return row;
+    });
+    sheetData.push(...newRows);
+    TEST_CASES.push(...newRows);
+    renderSheet(); renderTCStats();
+    showToast('📤 Đã import ' + newRows.length + ' test case!');
+  };
+  reader.readAsText(file, 'UTF-8');
+  input.value = '';
+}
+
+// ─── HELPERS ───
+function getFilteredRows() {
+  const appF      = document.getElementById('tc-filter-app')?.value || '';
+  const featureF  = document.getElementById('tc-filter-feature')?.value || '';
+  const statusF   = document.getElementById('tc-filter-status')?.value || '';
+  const priorityF = document.getElementById('tc-filter-priority')?.value || '';
+  return sheetData.filter(tc => {
+    if (appF      && tc.app !== appF) return false;
+    if (featureF  && tc.feature !== featureF) return false;
+    if (statusF   && tc.status !== statusF) return false;
+    if (priorityF && tc.priority !== priorityF) return false;
+    return true;
+  });
+}
+
+// ─── OVERRIDE renderTCList ───
+window.renderTCList = function() {
+  syncSheetFromTC();
+  renderSheet();
+};
+
+</script>
+
+<!-- ========== LINK POPOVER ========== -->
+<div class="link-popover" id="linkPopover">
+  <div class="link-popover-title">🔗 Chèn / Chỉnh sửa liên kết</div>
+  <div>
+    <div style="font-size:11.5px;color:var(--text3);margin-bottom:5px;font-weight:600">Văn bản hiển thị</div>
+    <input type="text" id="link-text-input" placeholder="Văn bản hiển thị (để trống = giữ nguyên)">
+  </div>
+  <div>
+    <div style="font-size:11.5px;color:var(--text3);margin-bottom:5px;font-weight:600">URL *</div>
+    <input type="url" id="link-url-input" placeholder="https://..." onkeydown="if(event.key==='Enter')applyLink()">
+  </div>
+  <div class="link-popover-actions">
+    <button class="btn-outline" onclick="closeLinkPopover()">Hủy</button>
+    <button class="btn-primary" onclick="applyLink()">🔗 Chèn liên kết</button>
+  </div>
+</div>
+
+<!-- ========== LINK PREVIEW BAR ========== -->
+<div class="link-preview-bar" id="linkPreviewBar">
+  <span>🔗</span>
+  <a id="link-preview-href" href="#" target="_blank"></a>
+  <span class="link-action-btn" onclick="editLinkFromPreview()">Sửa</span>
+  <span class="link-action-btn remove" onclick="removeLinkFromPreview()">Xóa</span>
+</div>
+</body>
+</html>
